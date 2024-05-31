@@ -32,6 +32,16 @@
                class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
          </tracetype>
       </module>
+      <module
+            analysis_module="org.eclipse.tracecompass.incubator.shinro.tracetype.core.GregTestAnalysisModule"
+            automatic="true"
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.gregtestmodule"
+            name="Greg Test Module">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
+         </tracetype>
+      </module>
    </extension>
    <extension
          point="org.eclipse.tracecompass.tmf.core.symbolProvider">

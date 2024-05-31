@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.callst
 
 import static org.eclipse.tracecompass.common.core.NonNullUtils.checkNotNull;
 
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.profiling.core.callstack.CallStackAnalysis;
@@ -15,6 +16,10 @@ import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
 public class ShinroCallStackAnalysis extends CallStackAnalysis {
+
+    public ShinroCallStackAnalysis() {
+        // TODO Auto-generated constructor stub
+    }
 
     @Override
     public boolean setTrace(ITmfTrace trace) throws TmfAnalysisException {
@@ -34,6 +39,10 @@ public class ShinroCallStackAnalysis extends CallStackAnalysis {
         return new ShinroCallStackProvider(checkNotNull(getTrace()));
     }
 
+    @Override
+    protected boolean executeAnalysis(@Nullable IProgressMonitor monitor) {
+        return super.executeAnalysis(monitor);
+    }
 }
 
 class ShinroCallStackProvider extends CallStackStateProvider {
