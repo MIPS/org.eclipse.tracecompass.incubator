@@ -55,7 +55,7 @@
          point="org.eclipse.tracecompass.tmf.core.dataprovider">
       <dataProviderFactory
             class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroDataProviderFactory"
-            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.dataProviderFactory">
+            id="org.eclipse.tracecompass.incubator.shinro.dataprovider">
       </dataProviderFactory>
    </extension>
 

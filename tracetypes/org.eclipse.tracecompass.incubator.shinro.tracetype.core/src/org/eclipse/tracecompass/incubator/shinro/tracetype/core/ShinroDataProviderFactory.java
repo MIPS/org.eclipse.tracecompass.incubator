@@ -22,6 +22,7 @@ import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeDataModel;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeModel;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
+import org.eclipse.tracecompass.tmf.core.trace.experiment.TmfExperiment;
 
 import com.google.common.collect.ImmutableList;
 
@@ -36,7 +37,7 @@ public class ShinroDataProviderFactory implements IDataProviderFactory {
 
     @Override
     public @Nullable ITmfTreeDataProvider<? extends ITmfTreeDataModel> createProvider(@NonNull ITmfTrace trace) {
-        if (trace instanceof ShinroTrace) {
+        if (trace instanceof TmfExperiment) {
             return createProviderLocal(trace);
         }
         return null;
@@ -59,7 +60,7 @@ public class ShinroDataProviderFactory implements IDataProviderFactory {
         builder.setId(DataProvider.ID);
         builder.setDescription("This would be a description for the Shinro trace custom view");
         builder.setName("Shinro trace custom view");
-        builder.setProviderType(ProviderType.TABLE);
+        builder.setProviderType(ProviderType.DATA_TREE);
         descriptorList.add(builder.build());
         return descriptorList;
     }
