@@ -33,10 +33,10 @@
          </tracetype>
       </module>
       <module
-            analysis_module="org.eclipse.tracecompass.incubator.shinro.tracetype.core.GregTestAnalysisModule"
+            analysis_module="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroFakeAnalysisModule"
             automatic="true"
-            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.gregtestmodule"
-            name="Greg Test Module">
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.fakeanalysismodule"
+            name="Shinro Fake Analysis Module">
          <tracetype
                applies="true"
                class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
@@ -50,6 +50,13 @@
             id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.symbolProviderFactory"
             priority="50">
       </providerFactory>
+   </extension>
+   <extension
+         point="org.eclipse.tracecompass.tmf.core.dataprovider">
+      <dataProviderFactory
+            class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroDataProviderFactory"
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.dataProviderFactory">
+      </dataProviderFactory>
    </extension>
 
 </plugin>

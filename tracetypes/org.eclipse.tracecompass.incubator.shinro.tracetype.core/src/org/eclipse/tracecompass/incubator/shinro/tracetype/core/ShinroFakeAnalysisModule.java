@@ -12,7 +12,7 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 /**
  *
  */
-public class GregTestAnalysisModule extends TmfStateSystemAnalysisModule {
+public class ShinroFakeAnalysisModule extends TmfStateSystemAnalysisModule {
 
 
 
