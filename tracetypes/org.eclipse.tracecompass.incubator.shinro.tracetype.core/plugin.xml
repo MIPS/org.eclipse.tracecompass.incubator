@@ -54,8 +54,8 @@
    <extension
          point="org.eclipse.tracecompass.tmf.core.dataprovider">
       <dataProviderFactory
-            class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroDataProviderFactory"
-            id="org.eclipse.tracecompass.incubator.shinro.dataprovider">
+            class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroFakeTreeDataProviderFactory"
+            id="org.eclipse.tracecompass.incubator.shinro.dataprovider.tree.fake">
       </dataProviderFactory>
    </extension>
 
