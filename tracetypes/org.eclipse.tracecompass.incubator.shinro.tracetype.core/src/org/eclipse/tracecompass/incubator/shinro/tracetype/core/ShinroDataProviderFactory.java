@@ -92,6 +92,7 @@ class DataProvider extends AbstractTreeDataProvider<@NonNull ShinroFakeAnalysisM
         ImmutableList<DataModel> dmList = ImmutableList.of(dm);
         return new TmfTreeModel<@NonNull DataModel>(header, dmList);
     }
+
 }
 
 class DataModel extends TmfTreeDataModel {

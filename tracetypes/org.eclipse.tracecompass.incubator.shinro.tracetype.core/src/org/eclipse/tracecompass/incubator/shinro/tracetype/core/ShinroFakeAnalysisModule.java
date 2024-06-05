@@ -3,6 +3,7 @@ package org.eclipse.tracecompass.incubator.shinro.tracetype.core;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
@@ -39,6 +40,7 @@ class StateProvider extends AbstractTmfStateProvider {
 
     String id;
 
+
     public StateProvider(ITmfTrace trace, @NonNull String id) {
         super(trace, id);
         this.id = id;
@@ -57,8 +59,12 @@ class StateProvider extends AbstractTmfStateProvider {
 
     @Override
     protected void eventHandle(@NonNull ITmfEvent event) {
-        // TODO Auto-generated method stub
-
+        // Just adding a fake attribute, to avoid a non-empty state system (for temporary bring-up reasons)
+        ITmfStateSystemBuilder ssb = getStateSystemBuilder();
+        if (ssb != null) {
+            int quark = ssb.getQuarkAbsoluteAndAdd("TestAttribute");
+            ssb.modifyAttribute(event.getTimestamp().getValue(), Long.valueOf(1), quark);
+        }
     }
 
 }
