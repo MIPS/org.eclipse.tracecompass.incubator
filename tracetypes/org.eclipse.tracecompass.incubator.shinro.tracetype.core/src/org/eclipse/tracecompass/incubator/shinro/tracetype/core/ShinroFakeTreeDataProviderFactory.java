@@ -50,7 +50,7 @@ public class ShinroFakeTreeDataProviderFactory implements IDataProviderFactory {
         builder.setId(ShinroFakeTreeDataProvider.ID);
         builder.setDescription("This would be a description for the Shinro trace custom view");
         builder.setName("Shinro trace custom view");
-        builder.setProviderType(ProviderType.DATA_TREE);
+        builder.setProviderType(ProviderType.TIME_GRAPH);
         descriptorList.add(builder.build());
         return descriptorList;
     }
