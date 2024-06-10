@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
+import org.eclipse.tracecompass.statesystem.core.ITmfStateSystemBuilder;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
 import org.eclipse.tracecompass.statesystem.core.exceptions.TimeRangeException;
 import org.eclipse.tracecompass.statesystem.core.interval.ITmfStateInterval;
@@ -14,6 +15,8 @@ import org.eclipse.tracecompass.tmf.core.statesystem.AbstractTmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
+
+import com.google.common.collect.ImmutableList;
 
 /**
  *
@@ -70,6 +73,7 @@ class StateProvider extends AbstractTmfStateProvider {
             return;
         }
         int picosecondsQuark = ssb.getQuarkAbsoluteAndAdd("picoseconds");
+        // experimentWithSsb(ssb);
         if (event.getName().equals("scheduler_picoseconds")) {
             ITmfEventField field = event.getType().getRootField().getField("value");
             accum += (Long)field.getValue();
@@ -100,6 +104,37 @@ class StateProvider extends AbstractTmfStateProvider {
         }
 
         // ssb.modifyAttribute(event.getTimestamp().getValue(), Long.valueOf(1), quark);
+    }
+
+    static void experimentWithSsb(ITmfStateSystemBuilder ssb) {
+
+        // a scaffolding method, just to experiment with adding/querying attribute values time
+        int rootquark = ssb.getQuarkAbsoluteAndAdd("testroot");
+        int childquark = ssb.getQuarkRelativeAndAdd(rootquark, "child1");
+        ssb.modifyAttribute(2000, Long.valueOf(0x1234), childquark);
+        ssb.modifyAttribute(3000, null, childquark);
+        ssb.modifyAttribute(4000, Long.valueOf(0x5678), childquark);
+        ssb.modifyAttribute(5000, null, childquark);
+
+        ssb.closeHistory(10000);
+
+        try {
+            var quarks = ImmutableList.of(childquark);
+            var times = ImmutableList.of(1500L, 2500L, 3500L, 4500L, 5500L);
+            var iterable = ssb.query2D(quarks, times);
+            for (var item : iterable) {
+                System.out.println(item);
+            }
+        } catch (IndexOutOfBoundsException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (TimeRangeException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        } catch (StateSystemDisposedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
 
 }

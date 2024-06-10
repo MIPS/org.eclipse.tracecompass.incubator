@@ -124,6 +124,7 @@ class ShinroFakeTreeDataProvider extends AbstractTimeGraphDataProvider<@NonNull 
                 if (state.getValue() != null) {
                     Long val = state.getValueLong();
                     ITimeGraphState timeGraphState = createTimeGraphState(state, val);
+                    System.out.println("adding timeGraphState: " + timeGraphState);
                     eventList.add(timeGraphState);
                 }
             });
