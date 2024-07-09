@@ -16,8 +16,6 @@ import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.statesystem.TmfStateSystemAnalysisModule;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
-import com.google.common.collect.ImmutableList;
-
 /**
  *
  */
@@ -73,7 +71,7 @@ class StateProvider extends AbstractTmfStateProvider {
             return;
         }
         int picosecondsQuark = ssb.getQuarkAbsoluteAndAdd("picoseconds");
-        // experimentWithSsb(ssb);
+        //experimentWithSsb(ssb);
         if (event.getName().equals("scheduler_picoseconds")) {
             ITmfEventField field = event.getType().getRootField().getField("value");
             accum += (Long)field.getValue();
@@ -111,17 +109,30 @@ class StateProvider extends AbstractTmfStateProvider {
         // a scaffolding method, just to experiment with adding/querying attribute values time
         int rootquark = ssb.getQuarkAbsoluteAndAdd("testroot");
         int childquark = ssb.getQuarkRelativeAndAdd(rootquark, "child1");
+        int stackquark = ssb.getQuarkRelativeAndAdd(rootquark, "stack");
         ssb.modifyAttribute(2000, Long.valueOf(0x1234), childquark);
         ssb.modifyAttribute(3000, null, childquark);
         ssb.modifyAttribute(4000, Long.valueOf(0x5678), childquark);
         ssb.modifyAttribute(5000, null, childquark);
 
+        ssb.pushAttribute(6000, Long.valueOf(0x12345678), stackquark);
+        ssb.pushAttribute(7000, Long.valueOf(0xAAEEAAEE), stackquark);
+        ssb.popAttribute(8000, stackquark);
+        ssb.popAttribute(9000, stackquark);
+
         ssb.closeHistory(10000);
 
         try {
-            var quarks = ImmutableList.of(childquark);
-            var times = ImmutableList.of(1500L, 2500L, 3500L, 4500L, 5500L);
-            var iterable = ssb.query2D(quarks, times);
+            int numAttr = ssb.getNbAttributes();
+            String nameZero = ssb.getAttributeName(0);
+            System.out.println(nameZero);
+            ArrayList<Integer> quarks = new ArrayList<>();
+            for (int quark = 0; quark < numAttr; quark++) {
+                quarks.add(quark);
+            }
+            //var times = ImmutableList.of(1500L, 2500L, 3500L, 4500L, 5500L);
+            //var iterable = ssb.query2D(quarks, ssb.getStartTime(), ssb.getCurrentEndTime());
+            var iterable = ssb.query2D(quarks, 7500, 7500);
             for (var item : iterable) {
                 System.out.println(item);
             }
@@ -135,6 +146,7 @@ class StateProvider extends AbstractTmfStateProvider {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+        System.out.println("got here");
     }
 
 }
