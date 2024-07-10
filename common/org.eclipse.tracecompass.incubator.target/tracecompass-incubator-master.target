@@ -133,10 +133,10 @@
 <unit id="org.eclipse.tracecompass.tmf.cli.feature.group" version="0.0.0"/>
 <repository location="https://download.eclipse.org/tracecompass/master/repository/"/>
 </location>
-<location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+<!--location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <repository location="https://download.eclipse.org/tracecompass/master/rcp-repository/"/>
 <unit id="org.eclipse.tracecompass.rcp.feature.group" version="0.0.0"/>
-</location>
+</location-->
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="planner" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.nebula.widgets.opal.notifier.feature.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.nebula.widgets.opal.duallist.feature.feature.group" version="0.0.0"/>
