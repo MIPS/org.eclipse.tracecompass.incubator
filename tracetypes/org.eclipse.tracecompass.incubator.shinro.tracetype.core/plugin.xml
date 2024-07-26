@@ -32,6 +32,16 @@
                class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
          </tracetype>
       </module>
+      <module
+            analysis_module="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.cpuusage.CpuUsageAnalysis"
+            automatic="false"
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.counters.cpuusage"
+            name="%analysis.cpuusage">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
+         </tracetype>
+      </module>
    </extension>
    <extension
          point="org.eclipse.tracecompass.tmf.core.symbolProvider">
@@ -41,5 +51,11 @@
             priority="50">
       </providerFactory>
    </extension>
-
+   <extension
+         point="org.eclipse.tracecompass.tmf.core.dataprovider">
+      <dataProviderFactory
+            class="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.cpuusage.CpuUsageProviderFactory"
+            id="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.cpuusage.CpuUsageDataProvider">
+      </dataProviderFactory>
+   </extension>
 </plugin>
