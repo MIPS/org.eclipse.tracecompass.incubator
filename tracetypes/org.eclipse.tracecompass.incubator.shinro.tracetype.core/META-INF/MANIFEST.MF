@@ -21,7 +21,28 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.jdt.annotation;bundle-version="[2.0.0,3.0.0)";resolution:=optional,
  org.eclipse.tracecompass.lttng2.ust.core
 Export-Package: org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core;x-friends:="org.eclipse.tracecompass.incubator.shinro.tracetype.core.tests",
- org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.callstack,
- org.eclipse.tracecompass.incubator.shinro.tracetype.core
+ org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.callstack;
+  uses:="org.eclipse.tracecompass.analysis.profiling.core.callstack,
+   org.eclipse.tracecompass.tmf.core.statesystem,
+   org.eclipse.tracecompass.tmf.core.trace,
+   org.eclipse.tracecompass.incubator.shinro.tracetype.core",
+ org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.cpuusage;
+  uses:="org.eclipse.core.runtime,
+   org.eclipse.tracecompass.tmf.core.statesystem,
+   org.eclipse.tracecompass.statesystem.core,
+   org.eclipse.tracecompass.tmf.core.trace,
+   org.eclipse.tracecompass.tmf.core.model.xy,
+   org.eclipse.tracecompass.tmf.core.model.tree",
+ org.eclipse.tracecompass.incubator.shinro.tracetype.core;
+  uses:="org.eclipse.tracecompass.tmf.core.symbols,
+   org.eclipse.tracecompass.tmf.core.timestamp,
+   org.eclipse.tracecompass.tmf.ctf.core.event,
+   org.eclipse.core.runtime,
+   org.eclipse.osgi.util,
+   org.eclipse.tracecompass.ctf.core.event,
+   org.eclipse.tracecompass.tmf.core.event.lookup,
+   org.eclipse.tracecompass.tmf.ctf.core.trace,
+   org.eclipse.core.resources,
+   org.eclipse.tracecompass.tmf.core.trace"
 Import-Package: com.google.common.collect;version="32.1.3"
 Automatic-Module-Name: org.eclipse.tracecompass.incubator.shinro.tracetype.core
