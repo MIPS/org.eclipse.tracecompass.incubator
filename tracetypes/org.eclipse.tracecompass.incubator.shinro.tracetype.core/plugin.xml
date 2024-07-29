@@ -35,7 +35,7 @@
       <module
             analysis_module="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.cpuusage.CpuUsageAnalysis"
             automatic="false"
-            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.counters.cpuusage"
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.cpuusage"
             name="%analysis.cpuusage">
          <tracetype
                applies="true"
