@@ -42,6 +42,16 @@
                class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
          </tracetype>
       </module>
+      <module
+            analysis_module="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus.ResourcesStatusAnalysis"
+            automatic="false"
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.resourcesstatus"
+            name="%analysis.resourcesstatus">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
+         </tracetype>
+      </module>      
    </extension>
    <extension
          point="org.eclipse.tracecompass.tmf.core.symbolProvider">
@@ -58,4 +68,11 @@
             id="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.cpuusage.CpuUsageDataProvider">
       </dataProviderFactory>
    </extension>
+   <extension
+         point="org.eclipse.tracecompass.tmf.core.dataprovider">
+      <dataProviderFactory
+            class="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus.ResourcesStatusProviderFactory"
+            id="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus.ResourcesStatusDataProvider">
+      </dataProviderFactory>
+   </extension>   
 </plugin>
