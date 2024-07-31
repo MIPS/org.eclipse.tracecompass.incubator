@@ -31,7 +31,7 @@ public class ResourcesStatusProviderFactory implements IDataProviderFactory {
             .setId(ResourcesStatusDataProvider.ID)
             .setName(Objects.requireNonNull(Messages.ResourcesStatusDataProvider_title))
             .setDescription(Objects.requireNonNull(Messages.ResourcesStatusProviderFactory_DescriptionText))
-            .setProviderType(ProviderType.TREE_TIME_XY)
+            .setProviderType(ProviderType.TIME_GRAPH)
             .build();
 
     public ResourcesStatusProviderFactory() {

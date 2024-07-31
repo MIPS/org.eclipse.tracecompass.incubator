@@ -1,12 +1,9 @@
 package org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.atomic.AtomicLong;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
@@ -14,11 +11,14 @@ import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.internal.tmf.core.model.filters.FetchParametersUtils;
 import org.eclipse.tracecompass.statesystem.core.ITmfStateSystem;
 import org.eclipse.tracecompass.statesystem.core.exceptions.StateSystemDisposedException;
-import org.eclipse.tracecompass.tmf.core.model.YModel;
 import org.eclipse.tracecompass.tmf.core.model.filters.TimeQueryFilter;
+import org.eclipse.tracecompass.tmf.core.model.timegraph.AbstractTimeGraphDataProvider;
+import org.eclipse.tracecompass.tmf.core.model.timegraph.ITimeGraphArrow;
+import org.eclipse.tracecompass.tmf.core.model.timegraph.ITimeGraphRowModel;
+import org.eclipse.tracecompass.tmf.core.model.timegraph.TimeGraphModel;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeModel;
-import org.eclipse.tracecompass.tmf.core.model.xy.AbstractTreeCommonXDataProvider;
-import org.eclipse.tracecompass.tmf.core.model.xy.IYModel;
+import org.eclipse.tracecompass.tmf.core.response.TmfModelResponse;
+import org.eclipse.tracecompass.tmf.core.response.ITmfResponse.Status;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
 
@@ -27,11 +27,11 @@ import com.google.common.collect.ImmutableList;
 /**
  *
  */
-public class ResourcesStatusDataProvider extends AbstractTreeCommonXDataProvider<@NonNull ResourcesStatusAnalysis, @NonNull ResourcesStatusEntryModel> {
+public class ResourcesStatusDataProvider extends AbstractTimeGraphDataProvider<@NonNull ResourcesStatusAnalysis, @NonNull ResourcesStatusEntryModel> {
     public static final String ID = "org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus.ResourcesStatusDataProvider"; //$NON-NLS-1$
 
-    private static final AtomicLong TRACE_IDS = new AtomicLong();
-    private final long fBogusId = TRACE_IDS.getAndIncrement();
+    //private static final AtomicLong TRACE_IDS = new AtomicLong();
+    // private final long fBogusId = TRACE_IDS.getAndIncrement();
 
     public static @Nullable ResourcesStatusDataProvider create(ITmfTrace trace) {
         ResourcesStatusAnalysis module = TmfTraceUtils.getAnalysisModuleOfClass(trace, ResourcesStatusAnalysis.class, ResourcesStatusAnalysis.ID);
@@ -54,22 +54,6 @@ public class ResourcesStatusDataProvider extends AbstractTreeCommonXDataProvider
         return ID;
     }
 
-    @Override
-    protected @Nullable Collection<@NonNull IYModel> getYSeriesModels(@NonNull ITmfStateSystem ss, @NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
-        return makeFakeData();
-    }
-
-    private Collection<@NonNull IYModel> makeFakeData() {
-        ArrayList<IYModel> list = new ArrayList<>();
-        list.add(new YModel(this.fBogusId, new double[] {1.2, 2.3, 3.4}));
-        return list;
-    }
-
-
-    @Override
-    protected @NonNull String getTitle() {
-        return Objects.requireNonNull(Messages.ResourcesStatusDataProvider_title);
-    }
 
     @Override
     protected boolean isCacheable() {
@@ -85,13 +69,31 @@ public class ResourcesStatusDataProvider extends AbstractTreeCommonXDataProvider
 
         //long end = filter.getEnd();
 
+        // TODO: figure out what start and end times should be.  Should they be the values from the
+        // filter?  Or should they be from the earliest and latest timestamps in the trace?
         List<ResourcesStatusEntryModel> entryList = new ArrayList<>();
-        var builder = new ImmutableList.Builder<String>();
-        builder.add("tree item");
-        var entry = new ResourcesStatusEntryModel(0, -1, builder.build());
+        var entry = new ResourcesStatusEntryModel(0, -1, "model", filter.getStart(), filter.getEnd(), false);
         entryList.add(entry);
 
         return new TmfTreeModel<>(ImmutableList.of("Column 1", "Column 2", "Column 3"), entryList);
+    }
+
+    @Override
+    public @NonNull TmfModelResponse<@NonNull List<@NonNull ITimeGraphArrow>> fetchArrows(@NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) {
+        // TODO: consider whether something else should be done here
+        return new TmfModelResponse<>(null, Status.COMPLETED, "Not supported"); //$NON-NLS-1$
+    }
+
+    @Override
+    public @NonNull TmfModelResponse<@NonNull Map<@NonNull String, @NonNull String>> fetchTooltip(@NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) {
+        // TODO: consider whether something else should be done here
+        return new TmfModelResponse<>(null, Status.COMPLETED, "Not supported"); //$NON-NLS-1$
+    }
+
+    @Override
+    protected @Nullable TimeGraphModel getRowModel(@NonNull ITmfStateSystem ss, @NonNull Map<@NonNull String, @NonNull Object> parameters, @Nullable IProgressMonitor monitor) throws StateSystemDisposedException {
+        List<ITimeGraphRowModel> rows = new ArrayList<>();
+        return new TimeGraphModel(rows);
     }
 
 }
