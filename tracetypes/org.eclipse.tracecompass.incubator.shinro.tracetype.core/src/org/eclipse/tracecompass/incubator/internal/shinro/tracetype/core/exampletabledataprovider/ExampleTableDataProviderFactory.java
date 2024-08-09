@@ -12,7 +12,7 @@ import org.eclipse.tracecompass.tmf.core.dataprovider.IDataProviderDescriptor.Pr
 import org.eclipse.tracecompass.tmf.core.model.DataProviderDescriptor;
 import org.eclipse.tracecompass.tmf.core.model.tree.ITmfTreeDataModel;
 import org.eclipse.tracecompass.tmf.core.model.tree.ITmfTreeDataProvider;
-import org.eclipse.tracecompass.tmf.core.model.xy.TmfTreeXYCompositeDataProvider;
+import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeCompositeDataProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceManager;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
@@ -29,9 +29,9 @@ public class ExampleTableDataProviderFactory implements IDataProviderFactory {
 
     private static final IDataProviderDescriptor DESCRIPTOR = new DataProviderDescriptor.Builder()
             .setId(ExampleTableDataProvider.ID)
-            .setName(Objects.requireNonNull(Messages.ResourcesStatusDataProvider_title))
-            .setDescription(Objects.requireNonNull(Messages.ResourcesStatusProviderFactory_DescriptionText))
-            .setProviderType(ProviderType.TIME_GRAPH)
+            .setName(Objects.requireNonNull(Messages.ExampleTableDataProvider_title))
+            .setDescription(Objects.requireNonNull(Messages.ExampleTableDataProviderFactory_DescriptionText))
+            .setProviderType(ProviderType.TABLE)
             .build();
 
     public ExampleTableDataProviderFactory() {
@@ -44,7 +44,8 @@ public class ExampleTableDataProviderFactory implements IDataProviderFactory {
         if (traces.size() == 1) {
             return ExampleTableDataProvider.create(trace);
         }
-        return TmfTreeXYCompositeDataProvider.create(traces, Objects.requireNonNull(Messages.ResourcesStatusDataProvider_title), ExampleTableDataProvider.ID);
+        // Not sure if the line below is correct!!
+        return TmfTreeCompositeDataProvider.create(traces, ExampleTableDataProvider.ID);
 
     }
 

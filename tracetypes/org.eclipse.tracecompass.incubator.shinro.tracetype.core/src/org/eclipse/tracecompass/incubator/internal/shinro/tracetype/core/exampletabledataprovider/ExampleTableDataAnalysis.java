@@ -13,7 +13,7 @@ import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 public class ExampleTableDataAnalysis extends TmfStateSystemAnalysisModule {
 
     /** The ID of this analysis */
-    public static final String ID = "org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.resourcesstatus"; //$NON-NLS-1$
+    public static final String ID = "org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.exampletabledataprovider"; //$NON-NLS-1$
 
     /**
      *
@@ -24,19 +24,19 @@ public class ExampleTableDataAnalysis extends TmfStateSystemAnalysisModule {
 
     @Override
     protected @NonNull ITmfStateProvider createStateProvider() {
-        return new ResourcesStatusStateProvider(Objects.requireNonNull(getTrace()), ExampleTableDataAnalysis.ID);
+        return new ExampleTableStateProvider(Objects.requireNonNull(getTrace()), ExampleTableDataAnalysis.ID);
     }
 
 }
 
 
-class ResourcesStatusStateProvider extends AbstractTmfStateProvider {
+class ExampleTableStateProvider extends AbstractTmfStateProvider {
 
     String moduleId;
 
     long tempEventsSeen = 0;
 
-    public ResourcesStatusStateProvider(@NonNull ITmfTrace trace, @NonNull String moduleId) {
+    public ExampleTableStateProvider(@NonNull ITmfTrace trace, @NonNull String moduleId) {
         super(trace, moduleId);
         this.moduleId = moduleId;
     }
@@ -49,7 +49,7 @@ class ResourcesStatusStateProvider extends AbstractTmfStateProvider {
 
     @Override
     public @NonNull ITmfStateProvider getNewInstance() {
-        return new ResourcesStatusStateProvider(getTrace(), moduleId);
+        return new ExampleTableStateProvider(getTrace(), moduleId);
     }
 
     @Override

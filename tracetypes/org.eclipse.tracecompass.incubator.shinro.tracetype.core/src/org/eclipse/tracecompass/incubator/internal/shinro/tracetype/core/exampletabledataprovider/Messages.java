@@ -5,16 +5,16 @@ import org.eclipse.osgi.util.NLS;
 
 
 public class Messages extends NLS {
-    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus.messages"; //$NON-NLS-1$
+    private static final String BUNDLE_NAME = "org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.exampletabledataprovider.messages"; //$NON-NLS-1$
 
     /**
      *
      */
-    public static @Nullable String ResourcesStatusDataProvider_title;
+    public static @Nullable String ExampleTableDataProvider_title;
     /**
      *
      */
-    public static @Nullable String ResourcesStatusProviderFactory_DescriptionText;
+    public static @Nullable String ExampleTableDataProviderFactory_DescriptionText;
 
     static {
         // initialize resource bundle

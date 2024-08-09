@@ -34,7 +34,7 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTraceUtils;
  *
  */
 public class ExampleTableDataProvider extends AbstractTmfTableDataProvider implements ITmfVirtualTableDataProvider<@NonNull ExampleTableColumnDataModel, @NonNull ExampleTableLine> {
-    public static final String ID = "org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.exampletabledataprovider.ExampleTableDataProvider"; //$NON-NLS-1$
+    public static final String ID = "org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.exampletabledataprovider"; //$NON-NLS-1$
 
     ExampleTableDataAnalysis fModule;
 
