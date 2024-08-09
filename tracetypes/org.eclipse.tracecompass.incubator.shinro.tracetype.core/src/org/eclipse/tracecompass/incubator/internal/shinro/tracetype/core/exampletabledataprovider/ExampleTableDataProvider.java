@@ -8,7 +8,6 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
-import org.eclipse.tracecompass.analysis.profiling.core.base.FlameDefaultPalette;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.filters.VirtualTableQueryFilter;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.table.ITmfVirtualTableDataProvider;
 import org.eclipse.tracecompass.internal.provisional.tmf.core.model.table.ITmfVirtualTableModel;
@@ -17,12 +16,6 @@ import org.eclipse.tracecompass.internal.provisional.tmf.core.model.table.Virtua
 import org.eclipse.tracecompass.internal.tmf.core.model.AbstractTmfTableDataProvider;
 import org.eclipse.tracecompass.internal.tmf.core.model.filters.FetchParametersUtils;
 import org.eclipse.tracecompass.tmf.core.model.CommonStatusMessage;
-import org.eclipse.tracecompass.tmf.core.model.OutputElementStyle;
-import org.eclipse.tracecompass.tmf.core.model.timegraph.ITimeGraphRowModel;
-import org.eclipse.tracecompass.tmf.core.model.timegraph.ITimeGraphState;
-import org.eclipse.tracecompass.tmf.core.model.timegraph.TimeGraphModel;
-import org.eclipse.tracecompass.tmf.core.model.timegraph.TimeGraphRowModel;
-import org.eclipse.tracecompass.tmf.core.model.timegraph.TimeGraphState;
 import org.eclipse.tracecompass.tmf.core.model.tree.TmfTreeModel;
 import org.eclipse.tracecompass.tmf.core.response.ITmfResponse;
 import org.eclipse.tracecompass.tmf.core.response.TmfModelResponse;
@@ -59,35 +52,43 @@ public class ExampleTableDataProvider extends AbstractTmfTableDataProvider imple
     }
 
 
-
+    /*
     static private OutputElementStyle getStyle(Object callsite) {
         var style = FlameDefaultPalette.getStyleFor(callsite);
         return style;
     }
+    */
 
-    /**
-     * @param parameters  - currently unused for the fake data scenario
-     */
-    TimeGraphModel getFakeData(@NonNull Map<@NonNull String, @NonNull Object> parameters) {
-        @NonNull List<ITimeGraphRowModel> rows = new ArrayList<>();
+     TmfVirtualTableModel<@NonNull ExampleTableLine> getFakeData(VirtualTableQueryFilter queryFilter) {
+        List<Long> columnIds = queryFilter.getColumnsId();
 
-        for (int id = 0; id < 3; id++) {
-            List<ITimeGraphState> states = new ArrayList<>();
-            Object callsite = new Object();
-            var hashcode = callsite.hashCode();
-            System.out.println(hashcode);
-            OutputElementStyle style = getStyle(callsite);
-            TimeGraphState state = new TimeGraphState(0, 11209985, "label", style);
-            states.add(state);
-            TimeGraphRowModel row = new TimeGraphRowModel(id, states);
-            rows.add(row);
+        ArrayList<ExampleTableLine> lines = new ArrayList<>();
+
+        long startRow = queryFilter.getIndex();
+        for (long row = startRow; row < startRow + queryFilter.getCount(); row++) {
+            ArrayList<VirtualTableCell> cells = new ArrayList<>();
+            var it = queryFilter.getColumnsId().iterator();
+            while (it.hasNext()) {
+                long col = it.next();
+                VirtualTableCell cell = new VirtualTableCell(String.format("cell(%d,%d)", row, col));
+                cells.add(cell);
+            }
+            ExampleTableLine line = new ExampleTableLine(row, cells);
+            lines.add(line);
         }
-        return new TimeGraphModel(rows);
+        TmfVirtualTableModel<@NonNull ExampleTableLine> model = new TmfVirtualTableModel<>(columnIds, lines, queryFilter.getIndex(), getTrace().getNbEvents());
+        return model;
     }
 
     @Override
     public @NonNull TmfModelResponse<@NonNull TmfTreeModel<@NonNull ExampleTableColumnDataModel>> fetchTree(@NonNull Map<@NonNull String, @NonNull Object> fetchParameters, @Nullable IProgressMonitor monitor) {
         List<ExampleTableColumnDataModel> model = new ArrayList<>();
+        for (int idx = 0; idx < 5; idx++) {
+            var labels = new ArrayList<String>();
+            labels.add("tree model col " + idx);
+            ExampleTableColumnDataModel entry = new ExampleTableColumnDataModel(idx, idx == 0 ? -1 : 0, labels);
+            model.add(entry);
+        }
         return new TmfModelResponse<>(new TmfTreeModel<>(Collections.emptyList(), model), ITmfResponse.Status.COMPLETED, CommonStatusMessage.COMPLETED);
     }
 
@@ -102,19 +103,7 @@ public class ExampleTableDataProvider extends AbstractTmfTableDataProvider imple
         if (queryFilter == null) {
             return new TmfModelResponse<>(null, ITmfResponse.Status.FAILED, CommonStatusMessage.INCORRECT_QUERY_PARAMETERS);
         }
-        List<Long> columnsIds = new ArrayList<>();
-
-
-
-        ArrayList<ExampleTableLine> lines = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            ArrayList<VirtualTableCell> cells = new ArrayList<>();
-            VirtualTableCell cell = new VirtualTableCell("dummy");
-            cells.add(cell);
-            ExampleTableLine line = new ExampleTableLine(i, cells);
-            lines.add(line);
-        }
-        TmfVirtualTableModel<@NonNull ExampleTableLine> model = new TmfVirtualTableModel<>(columnsIds, lines, queryFilter.getIndex(), getTrace().getNbEvents());
+        TmfVirtualTableModel<@NonNull ExampleTableLine> model = getFakeData(queryFilter);
         return new TmfModelResponse<>(model, ITmfResponse.Status.COMPLETED, CommonStatusMessage.COMPLETED);
     }
 
