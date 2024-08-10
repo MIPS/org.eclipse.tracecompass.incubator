@@ -33,6 +33,7 @@ Export-Package: org.eclipse.tracecompass.incubator.internal.shinro.tracetype.cor
    org.eclipse.tracecompass.tmf.core.trace,
    org.eclipse.tracecompass.tmf.core.model.xy,
    org.eclipse.tracecompass.tmf.core.model.tree",
+ org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.exampletabledataprovider,
  org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.resourcesstatus,
  org.eclipse.tracecompass.incubator.shinro.tracetype.core;
   uses:="org.eclipse.tracecompass.tmf.core.symbols,
