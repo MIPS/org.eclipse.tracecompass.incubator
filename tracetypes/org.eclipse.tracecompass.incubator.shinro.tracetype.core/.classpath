@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-api-2.0.6.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/slf4j-simple-2.0.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
 		<attributes>
 			<attribute name="annotationpath" value="/org.eclipse.tracecompass.incubator.annotations/annotations"/>
@@ -12,6 +14,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="/home/gsavin/hdf5/hdf5/HDF5-1.14.4.2-Linux/HDF_Group/HDF5/1.14.4.2/lib/jarhdf5-1.14.4.jar" sourcepath="/home/gsavin/hdf5/hdf5/HDF5-1.14.4.2-Linux/HDF_Group/HDF5/1.14.4.2/lib/jarhdf5-1.14.4.jar"/>
+	<classpathentry kind="lib" path="lib/jarhdf5-1.14.4.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
