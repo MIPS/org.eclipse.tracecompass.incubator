@@ -146,14 +146,12 @@ public class ShinroProfilingTrace extends TmfTrace {
         return eventType;
     }
 
-    /*
     private Hdf5libProfilingDataSlicedAccessor getAccessor() {
         if (f_accessor == null) {
-            f_accessor = new Hdf5libProfilingDataSlicedAccessor(f_dataset_id, f_rank, 1, 1);
+            f_accessor = new Hdf5libProfilingDataSlicedAccessor(f_dataset_id, f_num_elements, f_rank, 1, 1);
         }
         return f_accessor;
     }
-    */
 
     private void invalidateAccessor() {
         if (f_accessor != null) {
@@ -168,23 +166,16 @@ public class ShinroProfilingTrace extends TmfTrace {
             System.out.println("Unexpected; figure out an explanation.");
         }
 
-        /*
         Hdf5libProfilingDataSlicedAccessor accessor = getAccessor();
         boolean gotNext = accessor.next();
         if (!gotNext) {
             return null;
         }
-        */
 
         // TODO: pull data from accessor, build corresponding ShinroProfilingEvent instance, return it
 
-        /* TEMP SCAFFOLDING */
-        if (f_rank == 10) {
-            return null;
-        }
+        // following line is temp scaffolding
         ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, shinroProfilingEventType, null);
-        /* END TEMP SCAFFOLDING */
-
 
         // advance rank so that when getCurrentLocation gets called next time, we return
         // a location that references the incremented rank
@@ -199,6 +190,7 @@ public class ShinroProfilingTrace extends TmfTrace {
         long [] count = new long[1];
         long [] start = new long[1];
         long dataset_id;
+        long num_elements;
         long memspace_id;
         long filespace_id;
         long datatype_id;
@@ -207,8 +199,9 @@ public class ShinroProfilingTrace extends TmfTrace {
         Map<String, ProfilingDataMemberInfo> members = new HashMap<>();
 
 
-        public Hdf5libProfilingDataSlicedAccessor(long dataset_id, long start, long count, long stride) {
+        public Hdf5libProfilingDataSlicedAccessor(long dataset_id, long num_elements, long start, long count, long stride) {
             this.dataset_id = dataset_id;
+            this.num_elements = num_elements;
             this.start[0] = start;
             this.count[0] = count;
             this.stride[0] = stride;
@@ -246,6 +239,9 @@ public class ShinroProfilingTrace extends TmfTrace {
         }
 
         public boolean next() {
+            if (this.start[0] >= num_elements) {
+                return false;
+            }
             int selectResult = H5.H5Sselect_hyperslab(filespace_id, HDF5Constants.H5S_SELECT_SET, this.start, this.stride, this.count, null);
             if (selectResult < 0) {
                 return false;
@@ -258,10 +254,10 @@ public class ShinroProfilingTrace extends TmfTrace {
                 members.forEach((name, info) -> {
                     if (info.type_class == HDF5Constants.H5T_INTEGER) {
                         info.longVal = bytesToIntLittleEndian(bytes, (int)info.offset, (int)info.size);
-                        //System.out.println(String.format("%s = 0x%x", name, info.longVal));
+                        System.out.println(String.format("%s = 0x%x", name, info.longVal));
                     } else if (info.type_class == HDF5Constants.H5T_FLOAT) {
                         info.doubleVal = bytesToDoubleLittleEndian(bytes, (int)info.offset, (int)info.size);
-                        //System.out.println(String.format("%s = %f", name, info.doubleVal));
+                        System.out.println(String.format("%s = %f", name, info.doubleVal));
                     }
                 });
 
