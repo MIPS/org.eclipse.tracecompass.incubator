@@ -33,6 +33,7 @@ public class ShinroProfilingTrace extends TmfTrace {
     long f_dataspace_id = HDF5Constants.H5I_INVALID_HID;
     long f_num_elements = 0;
     long f_rank = 0;
+    Hdf5libProfilingDataSlicedAccessor f_accessor = null;
 
 
     static private boolean isHdf5File(String path) {
@@ -123,6 +124,7 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     @Override
     public ITmfContext seekEvent(ITmfLocation location) {
+        invalidateAccessor();
         if (location == null) {
             f_rank = 0;
         }
@@ -134,6 +136,7 @@ public class ShinroProfilingTrace extends TmfTrace {
     public ITmfContext seekEvent(double ratio) {
         // TODO Auto-generated method stub
         return null;
+
     }
 
     ITmfEventType shinroProfilingEventType = buildShinroProfilingEventType();
@@ -143,18 +146,45 @@ public class ShinroProfilingTrace extends TmfTrace {
         return eventType;
     }
 
+    /*
+    private Hdf5libProfilingDataSlicedAccessor getAccessor() {
+        if (f_accessor == null) {
+            f_accessor = new Hdf5libProfilingDataSlicedAccessor(f_dataset_id, f_rank, 1, 1);
+        }
+        return f_accessor;
+    }
+    */
+
+    private void invalidateAccessor() {
+        if (f_accessor != null) {
+            f_accessor.dispose();
+            f_accessor = null;
+        }
+    }
+
     @Override
     public ITmfEvent parseEvent(ITmfContext context) {
         if (context.getRank() != f_rank) {
             System.out.println("Unexpected; figure out an explanation.");
         }
-        // TODO: actually parse the event
-        // These next few lines are temporary scaffolding, to set up an fake event sequence so we can experiment and observe
+
+        /*
+        Hdf5libProfilingDataSlicedAccessor accessor = getAccessor();
+        boolean gotNext = accessor.next();
+        if (!gotNext) {
+            return null;
+        }
+        */
+
+        // TODO: pull data from accessor, build corresponding ShinroProfilingEvent instance, return it
+
+        /* TEMP SCAFFOLDING */
         if (f_rank == 10) {
             return null;
         }
         ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, shinroProfilingEventType, null);
-        // end temporary scaffolding
+        /* END TEMP SCAFFOLDING */
+
 
         // advance rank so that when getCurrentLocation gets called next time, we return
         // a location that references the incremented rank
