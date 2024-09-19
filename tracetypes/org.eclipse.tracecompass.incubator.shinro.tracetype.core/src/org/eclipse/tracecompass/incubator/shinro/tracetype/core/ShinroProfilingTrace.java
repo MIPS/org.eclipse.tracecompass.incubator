@@ -2,6 +2,7 @@ package org.eclipse.tracecompass.incubator.shinro.tracetype.core;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -11,7 +12,9 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
+import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfContext;
@@ -73,13 +76,6 @@ public class ShinroProfilingTrace extends TmfTrace {
             // to be adjusted to be per-core.
         }
         super.initTrace(resource, path, type, name, traceTypeId);
-
-        /*
-         * CtfTmfTrace;s initTrace method, as an example, has this comment above code that carries out the intent:
-         * Register every event type. When you call getType, it will register a trace to
-         * that type in the TmfEventTypeManager
-         */
-        // TODO - follow through to see if we need to do the same thing as mentioned in the above comment
     }
 
     @Override
@@ -172,10 +168,9 @@ public class ShinroProfilingTrace extends TmfTrace {
             return null;
         }
 
-        // TODO: pull data from accessor, build corresponding ShinroProfilingEvent instance, return it
 
-        // following line is temp scaffolding
-        ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, shinroProfilingEventType, null);
+        ITmfEventField content = getFieldContent(accessor);
+        ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, shinroProfilingEventType, content);
 
         // advance rank so that when getCurrentLocation gets called next time, we return
         // a location that references the incremented rank
@@ -183,6 +178,23 @@ public class ShinroProfilingTrace extends TmfTrace {
 
         // return the event we constructed
         return event;
+    }
+
+    private static ITmfEventField getFieldContent(Hdf5libProfilingDataSlicedAccessor accessor) {
+        var map = accessor.members;
+        var children = new ArrayList<ITmfEventField>();
+        map.forEach((name, info) -> {
+            Object fieldVal = null;
+            if (info.type_class == HDF5Constants.H5T_INTEGER) {
+                fieldVal = Long.valueOf(info.longVal);
+            } else if (info.type_class == HDF5Constants.H5T_FLOAT) {
+                fieldVal = Double.valueOf(info.doubleVal);
+            }
+            TmfEventField child = new TmfEventField(name, fieldVal, null);
+            children.add(child);
+        });
+        TmfEventField rootField = new TmfEventField(":root:", null, children.toArray(new ITmfEventField[0]));
+        return rootField;
     }
 
     static class Hdf5libProfilingDataSlicedAccessor {
@@ -250,14 +262,13 @@ public class ShinroProfilingTrace extends TmfTrace {
             int readResult = H5.H5Dread(dataset_id, datatype_id, memspace_id, filespace_id,
                     HDF5Constants.H5P_DEFAULT, bytes);
             if (readResult >= 0) {
-                // TODO: extract field values from bytes
                 members.forEach((name, info) -> {
                     if (info.type_class == HDF5Constants.H5T_INTEGER) {
                         info.longVal = bytesToIntLittleEndian(bytes, (int)info.offset, (int)info.size);
-                        System.out.println(String.format("%s = 0x%x", name, info.longVal));
+                        // System.out.println(String.format("%s = 0x%x", name, info.longVal));
                     } else if (info.type_class == HDF5Constants.H5T_FLOAT) {
                         info.doubleVal = bytesToDoubleLittleEndian(bytes, (int)info.offset, (int)info.size);
-                        System.out.println(String.format("%s = %f", name, info.doubleVal));
+                        // System.out.println(String.format("%s = %f", name, info.doubleVal));
                     }
                 });
 
