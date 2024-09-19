@@ -25,6 +25,7 @@ import org.eclipse.tracecompass.tmf.core.trace.location.TmfLongLocation;
 
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
+import hdf.hdf5lib.exceptions.HDF5Exception;
 import hdf.hdf5lib.exceptions.HDF5FileInterfaceException;
 
 public class ShinroProfilingTrace extends TmfTrace {
@@ -39,14 +40,26 @@ public class ShinroProfilingTrace extends TmfTrace {
     Hdf5libProfilingDataSlicedAccessor f_accessor = null;
 
 
-    static private boolean isHdf5File(String path) {
+    static private boolean isShinroProfilingHdf5File(String path) {
+        // a file is deemed to be a Shinro profiling HDF5 file if it can be opened
+        // successfully with the HDF5 library, and if it has a group /inst_prof_data.
         try {
             boolean valid = false;
             long file_id = H5.H5Fopen(path, HDF5Constants.H5F_ACC_RDONLY, HDF5Constants.H5P_DEFAULT);
             boolean opened = file_id != HDF5Constants.H5I_INVALID_HID;
             if (opened) {
-                valid = true;  // TODO - expand the logic to check for expected groups/datasets
-                H5.H5Fclose(file_id);
+                try {
+                    long group_id = H5.H5Gopen(file_id, "/inst_prof_data", HDF5Constants.H5P_DEFAULT);
+                    valid = group_id >= 0;
+                    if (valid) {
+                        H5.H5Gclose(group_id);
+                    }
+                } catch (HDF5Exception e) {
+                    // This means that the HDF5 file doesn't have the expected group, so it's
+                    // OK to swallow this exception, and assume that this is not a Shinro profiling HDF5 file
+                } finally {
+                    H5.H5Fclose(file_id);
+                }
             }
             return valid;
         } catch (HDF5FileInterfaceException e) {
@@ -101,7 +114,7 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     @Override
     public IStatus validate(IProject project, String path) {
-        if (isHdf5File(path)) {
+        if (isShinroProfilingHdf5File(path)) {
             return new TraceValidationStatus(CONFIDENCE, Activator.PLUGIN_ID);
         }
         return new Status(IStatus.ERROR, Activator.PLUGIN_ID, Messages.ShinroTrace_DomainError);
