@@ -239,20 +239,18 @@ public class ShinroProfilingTrace extends TmfTrace {
             bytes = new byte[(int)count * datatype_size];
 
             // Pre-calculate (one time) the offsets and sizes of members within the raw bytes representation
-            for (String field : INST_PROF_DATA_COMPOUND_FIELD_NAMES) {
-                int member = H5.H5Tget_member_index(datatype_id, field);
-                if (member >= 0) {
-                    //System.out.println("member name is: " + field);
-                    long memberOffset = H5.H5Tget_member_offset(datatype_id, member);
-                    //System.out.println("member offset is: " + memberOffset);
-                    long memberType_id = H5.H5Tget_member_type(datatype_id, member);
-                    long memberSize = H5.H5Tget_size(memberType_id);
-                    //System.out.println("member size is: " + memberSize);
-                    members.put(field, new ProfilingDataMemberInfo(field, memberType_id, memberOffset, memberSize));
-                    H5.H5Tclose(memberType_id);
-                } else {
-                    //System.out.println("Could not find member name: " + field);
-                }
+            int numMembers = H5.H5Tget_nmembers(datatype_id);
+            for (int memberIdx = 0; memberIdx < numMembers; memberIdx++) {
+                String memberName = H5.H5Tget_member_name(datatype_id, memberIdx);
+                //System.out.println("member name is: " + field);
+                long memberOffset = H5.H5Tget_member_offset(datatype_id, memberIdx);
+                //System.out.println("member offset is: " + memberOffset);
+                long memberType_id = H5.H5Tget_member_type(datatype_id, memberIdx);
+                long memberSize = H5.H5Tget_size(memberType_id);
+                //System.out.println("member size is: " + memberSize);
+
+                members.put(memberName, new ProfilingDataMemberInfo(memberName, memberType_id, memberOffset, memberSize));
+                H5.H5Tclose(memberType_id);
             }
 
         }
@@ -291,22 +289,6 @@ public class ShinroProfilingTrace extends TmfTrace {
             return readResult >= 0;
         }
     }
-
-    static final String [] INST_PROF_DATA_COMPOUND_FIELD_NAMES = {
-            "inst_addr",
-            "opcode",
-            "retirement_cycles_cost",
-            "cycle_first_seen",
-            "latest_ipc",
-            "num_flushes",
-            "is_load_store",
-            "l1dcache_hits",
-            "l1dcache_misses",
-            "is_branch",
-            "mispred_penalty",
-            "num_mispred",
-            "num_taken",
-         };
 
     static class ProfilingDataMemberInfo {
         public String name;
