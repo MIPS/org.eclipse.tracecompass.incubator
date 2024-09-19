@@ -11,6 +11,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfContext;
@@ -135,14 +136,25 @@ public class ShinroProfilingTrace extends TmfTrace {
         return null;
     }
 
+    ITmfEventType shinroProfilingEventType = buildShinroProfilingEventType();
+
+    static ITmfEventType buildShinroProfilingEventType() {
+        ShinroProfilingEventType eventType = new ShinroProfilingEventType("Shinro Profiling Event");
+        return eventType;
+    }
+
     @Override
     public ITmfEvent parseEvent(ITmfContext context) {
         if (context.getRank() != f_rank) {
             System.out.println("Unexpected; figure out an explanation.");
         }
         // TODO: actually parse the event
-        // This next line is temporary scaffolding, to set up an "empty" event so we can catch breakpoints in it
-        ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, null, null);
+        // These next few lines are temporary scaffolding, to set up an fake event sequence so we can experiment and observe
+        if (f_rank == 10) {
+            return null;
+        }
+        ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, shinroProfilingEventType, null);
+        // end temporary scaffolding
 
         // advance rank so that when getCurrentLocation gets called next time, we return
         // a location that references the incremented rank
