@@ -25,6 +25,8 @@ import org.eclipse.tracecompass.tmf.core.trace.location.TmfLongLocation;
 
 import hdf.hdf5lib.H5;
 import hdf.hdf5lib.HDF5Constants;
+import hdf.hdf5lib.callbacks.H5D_iterate_cb;
+import hdf.hdf5lib.callbacks.H5D_iterate_t;
 import hdf.hdf5lib.exceptions.HDF5Exception;
 import hdf.hdf5lib.exceptions.HDF5FileInterfaceException;
 
@@ -84,11 +86,100 @@ public class ShinroProfilingTrace extends TmfTrace {
             f_dataspace_id = H5.H5Dget_space(f_dataset_id);
             f_num_elements = H5.H5Sget_simple_extent_npoints(f_dataspace_id);
 
+            loadDasmData(f_file_id);
+
             // TODO - CONSIDER MULTI-CORE!  Currently getting single core working, but there will probably be one
             // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
             // to be adjusted to be per-core.
         }
         super.initTrace(resource, path, type, name, traceTypeId);
+    }
+
+    static class IterateCallback implements H5D_iterate_cb {
+        /**
+         * @param elem
+         * @param elem_type
+         * @param ndim
+         * @param point
+         * @param op_data
+         */
+        @Override
+        public int callback (byte[] elem, long elem_type, int ndim, long[] point, H5D_iterate_t op_data) {
+            return 0;
+        }
+    }
+
+    static class IterateData implements H5D_iterate_t {
+
+    }
+    private static void loadDasmData(long file_id) {
+        /*
+        String [] nameOut = new String[1];
+        int [] typeOut = new int[1];
+        int indexOfExpectedDataset = 1;
+        H5.H5Gget_obj_info_idx(file_id, "/", indexOfExpectedDataset, nameOut, typeOut);
+        long dasm_dataset_id = H5.H5Dopen(file_id, "/" + nameOut[0], HDF5Constants.H5P_DEFAULT);
+        */
+
+        long dasm_dataset_id = H5.H5Dopen(file_id, "/inst_disasm_data", HDF5Constants.H5P_DEFAULT);
+        long dasm_dataspace_id = H5.H5Dget_space(dasm_dataset_id);
+        //long num_elements = H5.H5Sget_simple_extent_npoints(dasm_dataspace_id);
+
+        long datatype_id = H5.H5Dget_type(dasm_dataset_id);
+        long datatype_size = H5.H5Tget_size(datatype_id);
+        System.out.println(datatype_size);
+
+
+
+        long member_type_id = H5.H5Tget_member_type(datatype_id, 1);
+        long member_size = H5.H5Tget_size(member_type_id);
+        long member_cls = H5.H5Tget_class(member_type_id);
+        String member_name = H5.H5Tget_class_name(member_cls);
+        long temp3 = H5.H5Tget_member_offset(datatype_id, 1);
+        System.out.println(temp3);
+        System.out.println(member_size);
+        System.out.println(member_name);
+        //byte [] bytes = new byte[(int)(datatype_size * num_elements)];
+        byte [] bytes = new byte[1024*1024*10];
+        //long [] dims = { num_elements };
+
+
+        long str_type = H5.H5Tcopy(HDF5Constants.H5T_C_S1);
+        H5.H5Tset_size(str_type, HDF5Constants.H5T_VARIABLE);
+        long size_readback = H5.H5Tget_size(str_type);
+        System.out.println(size_readback);
+        //H5.H5Tset_strpad(str_type,  HDF5Constants.H5T_STR_NULLTERM);
+        H5.H5Tset_cset(str_type, HDF5Constants.H5T_CSET_ASCII);
+        int cls = H5.H5Tget_class(str_type);
+        String temp = H5.H5Tget_class_name(cls);
+        System.out.println(temp);
+
+
+        long memtype_id = H5.H5Tcreate(HDF5Constants.H5T_COMPOUND, datatype_size);
+        H5.H5Tinsert(memtype_id, "opcode", 0, HDF5Constants.H5T_NATIVE_INT);
+        long temp2 = H5.H5Tget_size(memtype_id);
+        System.out.println(temp2);
+        H5.H5Tinsert(memtype_id, "disasm", 8, str_type);
+        long temp4 = H5.H5Tget_size(memtype_id);
+        System.out.println(temp4);
+
+
+        //long filespace_id = H5.H5Dget_space(dasm_dataset_id);
+        H5.H5Dread(dasm_dataset_id, memtype_id, HDF5Constants.H5S_ALL, HDF5Constants.H5S_ALL, HDF5Constants.H5P_DEFAULT, bytes);
+
+        IterateCallback cb = new IterateCallback();
+        IterateData d = new IterateData();
+        //long memspace_id = H5.H5Screate_simple(1, dims, null);
+        int result = H5.H5Diterate (bytes, datatype_id, dasm_dataspace_id, cb, d);
+        System.out.println(result);
+        //H5.H5Sclose(filespace_id);
+        //H5.H5Sclose(memspace_id);
+        H5.H5Tclose(datatype_id);
+
+
+        if (dasm_dataset_id >= 0) {
+            H5.H5Dclose(dasm_dataset_id);
+        }
     }
 
     @Override
