@@ -13,11 +13,13 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator;
+import org.eclipse.tracecompass.internal.tmf.core.timestamp.TmfNanoTimestamp;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
+import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfContext;
 import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
@@ -263,7 +265,17 @@ public class ShinroProfilingTrace extends TmfTrace {
 
 
         ITmfEventField content = getFieldContent(f_rank);
-        ITmfEvent event = new ShinroProfilingEvent(this, f_rank, null, shinroProfilingEventType, content);
+
+        // let's use the cycle_first_seen field as the timestamp, since there's no better option from what's available
+        ITmfEventField fieldCycleFirstSeen = content.getField("cycle_first_seen");
+        ITmfTimestamp eventTimestamp = null;
+        if (fieldCycleFirstSeen != null) {
+            BigInteger bigintVal = (BigInteger)fieldCycleFirstSeen.getValue();
+            long longval = bigintVal.longValue();
+            eventTimestamp = new TmfNanoTimestamp(longval);
+        }
+
+        ITmfEvent event = new ShinroProfilingEvent(this, f_rank, eventTimestamp, shinroProfilingEventType, content);
 
         // advance rank so that when getCurrentLocation gets called next time, we return
         // a location that references the incremented rank
