@@ -75,8 +75,8 @@ public class ShinroProfilingTrace extends TmfTrace {
     public void initTrace(IResource resource, String strPath, Class<? extends ITmfEvent> type, String name, String traceTypeId) throws TmfTraceException {
         Path path = Paths.get(strPath);
         try (HdfFile file = new HdfFile(path)) {
-            loadInstProfData(file);
             loadInstDisasmData(file);
+            loadInstProfData(file);
         } catch (HdfException e) {
 
         }
@@ -316,6 +316,17 @@ public class ShinroProfilingTrace extends TmfTrace {
                 if (fieldVal != null) {
                     TmfEventField child = new TmfEventField(fieldname, fieldVal, null);
                     children.add(child);
+                }
+                // There's one pseudo field that's not in /inst_prof_data but we have to look it up
+                // at runtime from info gleaned from /inst_disasm_data: disassembly text.
+                // So this case is treated specially:
+                if (fieldname.equals("opcode")) {
+                    // lookup in opcode map to get dasm text
+                    String dasmString = f_opcodeDasmMap.get(fieldVal);
+                    if (dasmString != null) {
+                        TmfEventField child = new TmfEventField("disasm", dasmString, null);
+                        children.add(child);
+                    }
                 }
             }
         });
