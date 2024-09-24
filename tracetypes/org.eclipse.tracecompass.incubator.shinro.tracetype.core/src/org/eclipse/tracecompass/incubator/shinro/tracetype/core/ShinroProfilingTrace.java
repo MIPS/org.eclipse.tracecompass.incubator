@@ -38,6 +38,7 @@ import io.jhdf.object.datatype.DataType;
 public class ShinroProfilingTrace extends TmfTrace {
 
     Map<String, Object> f_instProfData = null;
+    Map<Long, String> f_opcodeDasmMap = new HashMap<Long, String>();
     long f_instProfDataNumElements;
     long f_rank;
     Map<String, DatasetMetadata> f_instProfMetadata = new HashMap<>();
@@ -74,47 +75,66 @@ public class ShinroProfilingTrace extends TmfTrace {
     public void initTrace(IResource resource, String strPath, Class<? extends ITmfEvent> type, String name, String traceTypeId) throws TmfTraceException {
         Path path = Paths.get(strPath);
         try (HdfFile file = new HdfFile(path)) {
-            Node nodeProfData = file.getByPath("/inst_prof_data");
-
-            if (nodeProfData != null && nodeProfData.getType() == NodeType.GROUP) {
-                Group groupProfData = (Group)nodeProfData;
-                // find first dataset (we don't statically know the name at this point)
-                Dataset firstDataset = null;
-                var children = groupProfData.getChildren();
-                var childIterator = children.values().iterator();
-                while (childIterator.hasNext()) {
-                    var child = childIterator.next();
-                    if (child.getType() == NodeType.DATASET) {
-                        firstDataset = (Dataset)child;
-                        break;
-                    }
-                }
-                if (firstDataset != null) {
-                    f_instProfDataNumElements = firstDataset.getDimensions()[0];
-                    DataType dt = firstDataset.getDataType();
-                    CompoundDataType cdt = (CompoundDataType)dt;
-                    List<CompoundDataMember> members = cdt.getMembers();
-                    for (int idx = 0; idx < members.size(); idx++) {
-                        CompoundDataMember member = members.get(idx);
-                        f_instProfMetadata.put(member.getName(), new DatasetMetadata(member));
-                    }
-                    Object obj = firstDataset.getData();
-                    if (obj instanceof Map<?, ?>) {
-                        f_instProfData = (Map<String, Object>)firstDataset.getData();
-                    }
-
-                }
-                // TODO - CONSIDER MULTI-CORE!  Currently getting single core working, but there will probably be one
-                // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
-                // to be adjusted to be per-core.
-            }
+            loadInstProfData(file);
+            loadInstDisasmData(file);
         } catch (HdfException e) {
 
         }
         super.initTrace(resource, strPath, type, name, traceTypeId);
     }
 
+    private void loadInstDisasmData(HdfFile file) {
+        Node nodeInstDisasmData = file.getByPath("/inst_disasm_data");
+        if (nodeInstDisasmData != null && nodeInstDisasmData.getType() == NodeType.DATASET) {
+            Dataset dataset = (Dataset)nodeInstDisasmData;
+            Map<String, Object> map = (Map<String, Object>)dataset.getData();
+            long size = dataset.getSize();
+            for (int idx = 0; idx < (int)size; idx++) {
+                long [] aryLong = (long[])map.get("opcode");
+                String [] aryString =  (String[])map.get("disasm");
+                if (aryLong != null && aryString != null) {
+                    f_opcodeDasmMap.put(aryLong[idx], aryString[idx]);
+                }
+            }
+        }
+    }
 
+    private void loadInstProfData(HdfFile file) {
+        Node nodeProfData = file.getByPath("/inst_prof_data");
+
+        if (nodeProfData != null && nodeProfData.getType() == NodeType.GROUP) {
+            Group groupProfData = (Group)nodeProfData;
+            // find first dataset (we don't statically know the name at this point)
+            Dataset firstDataset = null;
+            var children = groupProfData.getChildren();
+            var childIterator = children.values().iterator();
+            while (childIterator.hasNext()) {
+                var child = childIterator.next();
+                if (child.getType() == NodeType.DATASET) {
+                    firstDataset = (Dataset)child;
+                    break;
+                }
+            }
+            if (firstDataset != null) {
+                f_instProfDataNumElements = firstDataset.getDimensions()[0];
+                DataType dt = firstDataset.getDataType();
+                CompoundDataType cdt = (CompoundDataType)dt;
+                List<CompoundDataMember> members = cdt.getMembers();
+                for (int idx = 0; idx < members.size(); idx++) {
+                    CompoundDataMember member = members.get(idx);
+                    f_instProfMetadata.put(member.getName(), new DatasetMetadata(member));
+                }
+                Object obj = firstDataset.getData();
+                if (obj instanceof Map<?, ?>) {
+                    f_instProfData = (Map<String, Object>)firstDataset.getData();
+                }
+
+            }
+            // TODO - CONSIDER MULTI-CORE!  Currently getting single core working, but there will probably be one
+            // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
+            // to be adjusted to be per-core.
+        }
+    }
 
 /*
     private static void loadDasmData(long file_id) {
