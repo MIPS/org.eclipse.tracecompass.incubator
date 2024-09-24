@@ -44,6 +44,7 @@ public class ShinroProfilingTrace extends TmfTrace {
     long f_instProfDataNumElements;
     long f_rank;
     Map<String, DatasetMetadata> f_instProfMetadata = new HashMap<>();
+    ITmfEventType shinroProfilingEventType;
 
     class DatasetMetadata {
         DatasetMetadata(CompoundDataMember member) {
@@ -131,6 +132,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                     f_instProfData = (Map<String, Object>)firstDataset.getData();
                 }
 
+                shinroProfilingEventType = buildShinroProfilingEventType();
+
             }
             // TODO - CONSIDER MULTI-CORE!  Currently getting single core working, but there will probably be one
             // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
@@ -179,10 +182,21 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     }
 
-    ITmfEventType shinroProfilingEventType = buildShinroProfilingEventType();
 
-    static ITmfEventType buildShinroProfilingEventType() {
-        ShinroProfilingEventType eventType = new ShinroProfilingEventType("Shinro Profiling Event");
+
+    private ITmfEventType buildShinroProfilingEventType() {
+        ITmfEventField rootField = null;
+        ArrayList<ITmfEventField> subFields = new ArrayList<>();
+        // query f_instProfMetadata for the event fields
+        var fields = f_instProfMetadata.values();
+        var it = fields.iterator();
+        while (it.hasNext()) {
+            DatasetMetadata dm = it.next();
+            ShinroProfilingEventField field = new ShinroProfilingEventField(dm.member.getName(), null, null);
+            subFields.add(field);
+        }
+        rootField = new ShinroProfilingEventField(ITmfEventField.ROOT_FIELD_ID, null, subFields.toArray(new ITmfEventField[0]));
+        ShinroProfilingEventType eventType = new ShinroProfilingEventType("Shinro Profiling Event", rootField);
         return eventType;
     }
 
@@ -265,7 +279,7 @@ public class ShinroProfilingTrace extends TmfTrace {
             }
         });
 
-        TmfEventField rootField = new TmfEventField(":root:", null, children.toArray(new ITmfEventField[0]));
+        TmfEventField rootField = new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, children.toArray(new ITmfEventField[0]));
         return rootField;
     }
 
