@@ -272,7 +272,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                     // lookup in opcode map to get dasm text
                     String dasmString = f_opcodeDasmMap.get(fieldVal);
                     if (dasmString != null) {
-                        TmfEventField child = new TmfEventField("disasm", dasmString, null);
+                        QuotedString quotedString = new QuotedString(dasmString);
+                        TmfEventField child = new TmfEventField("disasm", quotedString, null);
                         children.add(child);
                     }
                 }
