@@ -11,6 +11,14 @@
             name="Shinro Trace"
             trace_type="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace">
       </type>
+      <type
+            category="TBD"
+            event_type="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroProfilingEvent"
+            id="org.eclipse.tracecompass.incubator.shinro.profiling.tracetype"
+            isDirectory="false"
+            name="Shinro Profiling Trace"
+            trace_type="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroProfilingTrace">
+      </type>
    </extension>
    <extension
          point="org.eclipse.linuxtools.tmf.core.analysis">

@@ -6,6 +6,11 @@ Bundle-SymbolicName: org.eclipse.tracecompass.incubator.shinro.tracetype.core;si
 Bundle-Version: 0.1.0.qualifier
 Bundle-Localization: plugin
 Bundle-Activator: org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator
+Bundle-ClassPath: .,
+ lib/jhdf-0.8.2.jar,
+ lib/slf4j-api-2.0.6.jar,
+ lib/slf4j-simple-2.0.6.jar,
+ lib/commons-lang3-3.17.0.jar
 Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.eclipse.core.runtime,
