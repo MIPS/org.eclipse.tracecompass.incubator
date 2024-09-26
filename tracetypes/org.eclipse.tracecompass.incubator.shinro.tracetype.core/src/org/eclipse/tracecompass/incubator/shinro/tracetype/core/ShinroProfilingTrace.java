@@ -102,6 +102,14 @@ public class ShinroProfilingTrace extends TmfTrace {
         }
     }
 
+    /**
+     * @param fieldname
+     */
+    private static boolean shouldFieldBeDisplayedInHex(String fieldname) {
+        return fieldname.equals("inst_addr") ||
+                fieldname.equals("opcode");
+    }
+
     private void loadInstProfData(HdfFile file) {
         Node nodeProfData = file.getByPath("/inst_prof_data");
 
@@ -192,10 +200,11 @@ public class ShinroProfilingTrace extends TmfTrace {
         var it = fields.iterator();
         while (it.hasNext()) {
             DatasetMetadata dm = it.next();
-            ShinroProfilingEventField field = new ShinroProfilingEventField(dm.member.getName(), null, null);
+            String fieldName = dm.member.getName();
+            ShinroProfilingEventField field = new ShinroProfilingEventField(fieldName, null, shouldFieldBeDisplayedInHex(fieldName), null);
             subFields.add(field);
         }
-        rootField = new ShinroProfilingEventField(ITmfEventField.ROOT_FIELD_ID, null, subFields.toArray(new ITmfEventField[0]));
+        rootField = new ShinroProfilingEventField(ITmfEventField.ROOT_FIELD_ID, null, false, subFields.toArray(new ITmfEventField[0]));
         ShinroProfilingEventType eventType = new ShinroProfilingEventType("Shinro Profiling Event", rootField);
         return eventType;
     }
@@ -235,6 +244,8 @@ public class ShinroProfilingTrace extends TmfTrace {
         return event;
     }
 
+
+
     /**
      * @param rank
      */
@@ -262,7 +273,7 @@ public class ShinroProfilingTrace extends TmfTrace {
                     System.out.println("Shinro Profiling Trace internal error: unexpected data type returned from jhdf query.");
                 }
                 if (fieldVal != null) {
-                    TmfEventField child = new TmfEventField(fieldname, fieldVal, null);
+                    TmfEventField child = new ShinroProfilingEventField(fieldname, fieldVal, shouldFieldBeDisplayedInHex(fieldname), null);
                     children.add(child);
                 }
                 // There's one pseudo field that's not in /inst_prof_data but we have to look it up
@@ -273,14 +284,14 @@ public class ShinroProfilingTrace extends TmfTrace {
                     String dasmString = f_opcodeDasmMap.get(fieldVal);
                     if (dasmString != null) {
                         QuotedString quotedString = new QuotedString(dasmString);
-                        TmfEventField child = new TmfEventField("disasm", quotedString, null);
+                        TmfEventField child = new ShinroProfilingEventField("disasm", quotedString, false, null);
                         children.add(child);
                     }
                 }
             }
         });
 
-        TmfEventField rootField = new TmfEventField(ITmfEventField.ROOT_FIELD_ID, null, children.toArray(new ITmfEventField[0]));
+        TmfEventField rootField = new ShinroProfilingEventField(ITmfEventField.ROOT_FIELD_ID, null, false, children.toArray(new ITmfEventField[0]));
         return rootField;
     }
 
