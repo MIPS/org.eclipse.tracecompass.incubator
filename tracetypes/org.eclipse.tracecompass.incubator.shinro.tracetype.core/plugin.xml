@@ -32,6 +32,15 @@
          </tracetype>
       </module>
       <module
+            analysis_module="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.callstack.ShinroProfilingCallStackAnalysis"
+            id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.profiling.callstack"
+            name="%analysis.profiling.callstack">
+         <tracetype
+               applies="true"
+               class="org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroProfilingTrace">
+         </tracetype>
+      </module>
+      <module
             analysis_module="org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.counters.ShinroCountersAnalysis"
             id="org.eclipse.tracecompass.incubator.shinro.tracetype.core.analysis.counters"
             name="%analysis.counters">

@@ -6,7 +6,7 @@ import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.analysis.profiling.core.callstack.CallStackAnalysis;
 import org.eclipse.tracecompass.analysis.profiling.core.callstack.CallStackStateProvider;
-import org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroTrace;
+import org.eclipse.tracecompass.incubator.shinro.tracetype.core.ShinroProfilingTrace;
 import org.eclipse.tracecompass.statesystem.core.statevalue.ITmfStateValue;
 import org.eclipse.tracecompass.statesystem.core.statevalue.TmfStateValue;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
@@ -14,19 +14,22 @@ import org.eclipse.tracecompass.tmf.core.exceptions.TmfAnalysisException;
 import org.eclipse.tracecompass.tmf.core.statesystem.ITmfStateProvider;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
-public class ShinroCallStackAnalysis extends CallStackAnalysis {
+/**
+ *
+ */
+public class ShinroProfilingCallStackAnalysis extends CallStackAnalysis {
 
     @Override
     public boolean setTrace(ITmfTrace trace) throws TmfAnalysisException {
-        if (!(trace instanceof ShinroTrace)) {
+        if (!(trace instanceof ShinroProfilingTrace)) {
             return false;
         }
         return super.setTrace(trace);
     }
 
     @Override
-    public ShinroTrace getTrace() {
-        return (ShinroTrace) super.getTrace();
+    public ShinroProfilingTrace getTrace() {
+        return (ShinroProfilingTrace) super.getTrace();
     }
 
     @Override
@@ -36,14 +39,14 @@ public class ShinroCallStackAnalysis extends CallStackAnalysis {
 
 }
 
-class ShinroCallStackProvider extends CallStackStateProvider {
+class ShinroProfilingCallStackProvider extends CallStackStateProvider {
 
     // for now, this is generating fake stack traces, calls every 100 events, max stack depth of 10
     int depth = 0;
     int count = 0;
     boolean pushing = true;
 
-    public ShinroCallStackProvider(ITmfTrace trace) {
+    public ShinroProfilingCallStackProvider(ITmfTrace trace) {
         super(trace);
     }
 
