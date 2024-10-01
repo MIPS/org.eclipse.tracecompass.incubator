@@ -205,7 +205,7 @@ public class ShinroProfilingTrace extends TmfTrace {
             subFields.add(field);
         }
         rootField = new ShinroProfilingEventField(ITmfEventField.ROOT_FIELD_ID, null, false, subFields.toArray(new ITmfEventField[0]));
-        ShinroProfilingEventType eventType = new ShinroProfilingEventType("Shinro Profiling Event", rootField);
+        ShinroProfilingEventType eventType = new ShinroProfilingEventType("inst_prof_data", rootField);
         return eventType;
     }
 
