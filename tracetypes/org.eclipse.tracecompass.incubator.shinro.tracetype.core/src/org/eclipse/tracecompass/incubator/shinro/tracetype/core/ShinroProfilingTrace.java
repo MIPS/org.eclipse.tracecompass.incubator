@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -138,6 +139,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                 Object obj = firstDataset.getData();
                 if (obj instanceof Map<?, ?>) {
                     f_instProfData = (Map<String, Object>)firstDataset.getData();
+                    // compute call/return pseudo attributes
+                    computeCallReturnPseudoAttributes(f_instProfData, (int)f_instProfDataNumElements);
                 }
 
                 shinroProfilingEventType = buildShinroProfilingEventType();
@@ -146,6 +149,78 @@ public class ShinroProfilingTrace extends TmfTrace {
             // TODO - CONSIDER MULTI-CORE!  Currently getting single core working, but there will probably be one
             // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
             // to be adjusted to be per-core.
+        }
+    }
+
+    static final int MATCH_JAL = 0x6f;
+    static final int MASK_JAL = 0x7f;
+    static final int MATCH_JALR = 0x67;
+    static final int MASK_JALR = 0x707f;
+    static final int MATCH_C_JAL = 0x2001;
+    static final int MASK_C_JAL = 0xe003;
+    static final int MATCH_C_JALR = 0x9002;
+    static final int MASK_C_JALR = 0xf07f;
+    static final int MATCH_C_JR = 0x8002;
+    static final int MASK_C_JR = 0xf07f;
+
+    private void computeCallReturnPseudoAttributes(Map<String, Object> map, int numElements) {
+        long [] opcodes = (long [])f_instProfData.get("opcode");
+        if (opcodes == null) {
+            return;
+        }
+        BigInteger [] addresses = (BigInteger[])f_instProfData.get("inst_addr");
+        if (addresses == null) {
+            return;
+        }
+        Stack<BigInteger> stack = new Stack<>();
+        BigInteger [] isCallArray = new BigInteger[numElements];
+        BigInteger [] isReturnArray = new BigInteger[numElements];
+        map.put("is_call", isCallArray);
+        map.put("is_return", isReturnArray);
+        for (int idx = 0; idx < numElements; idx++) {
+            boolean isCall = false;
+            boolean isReturn = false;
+            long opcode = opcodes[idx];
+            if ((opcode & MASK_JAL) == MATCH_JAL) {
+                int rd = ((int)opcode >> 7) & 0x1F;
+                isCall = rd == 1 || rd == 5;
+            } else if ((opcode & MASK_JALR) == MATCH_JALR) {
+                int rd = ((int)opcode >> 7) & 0x1F;
+                int rs1 = ((int)opcode >> 15) & 0x1F;
+                boolean rd_is_link = rd == 1 || rd == 5;
+                boolean rs1_is_link = rs1 == 1 || rs1 == 5;
+                boolean rd_and_rs1_equal = rd == rs1;
+                isCall = rd_is_link && (!rs1_is_link || rd_and_rs1_equal);
+                isReturn = !rd_is_link && rs1_is_link;
+            } else if ((opcode & MASK_C_JAL) == MATCH_C_JAL) {
+                // rd is implicitly 1, so it's always a call
+                isCall = true;
+            } else if ((opcode & MASK_C_JALR) == MATCH_C_JALR) {
+                int rd = 1;  // implicit
+                int rs1 = ((int)opcode >> 7) & 0x1F;
+                boolean rd_is_link = rd == 1 || rd == 5;
+                boolean rs1_is_link = rs1 == 1 || rs1 == 5;
+                boolean rd_and_rs1_equal = rd == rs1;
+                isCall = rd_is_link && (!rs1_is_link || rd_and_rs1_equal);
+                isReturn = !rd_is_link && rs1_is_link;
+            } else if ((opcode & MASK_C_JR) == MATCH_C_JR) {
+                int rs1 = ((int)opcode >> 7) & 0x1F;
+                boolean rs1_is_link = rs1 == 1 || rs1 == 5;
+                isReturn = !rs1_is_link && rs1_is_link;
+            }
+            if (isCall && idx < numElements-1) {
+                BigInteger addr = addresses[idx+1];
+                isCallArray[idx] = addr;
+                stack.push(addr);
+            }
+            if (isReturn) {
+                if (stack.empty()) {
+                    System.out.println("Warning: saw return without preceding call");
+                } else {
+                    BigInteger top = stack.pop();
+                    isReturnArray[idx] = top;
+                }
+            }
         }
     }
 

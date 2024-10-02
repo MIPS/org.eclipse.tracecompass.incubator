@@ -124,6 +124,7 @@ class ShinroProfilingCallStackProvider extends CallStackStateProvider {
             boolean rs1_is_link = rs1 == 1 || rs1 == 5;
             isReturn[0] = !rs1_is_link && rs1_is_link;
         }
+        System.out.println(String.format("opcode is 0x%x, isCall is %s, isReturn is %s", opcode, isCall[0] ? "true" : "false", isReturn[0] ? "true" : "false"));
     }
 
     @Override
