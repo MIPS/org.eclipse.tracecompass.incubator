@@ -249,7 +249,7 @@ public class ShinroProfilingTrace extends TmfTrace {
     /**
      * @param rank
      */
-    private ITmfEventField getFieldContent(long rank) {
+    public ITmfEventField getFieldContent(long rank) {
         // for each field in data map, create a TmfEventField instance with the name of the data
         // map field and the [f_rank] offset of the array of data values for that field
         ArrayList<ITmfEventField> children = new ArrayList<>();
@@ -295,6 +295,18 @@ public class ShinroProfilingTrace extends TmfTrace {
         return rootField;
     }
 
+    /**
+     * @param rank
+     * @return
+     */
+    public long getEventAddress(long rank) {
+        Object field = f_instProfData.get("inst_addr");
+        BigInteger [] ary = (BigInteger[])field;
+        if (ary != null) {
+            return ary[(int)rank].longValue();
+        }
+        return 0L;
+    }
 
 
 }
