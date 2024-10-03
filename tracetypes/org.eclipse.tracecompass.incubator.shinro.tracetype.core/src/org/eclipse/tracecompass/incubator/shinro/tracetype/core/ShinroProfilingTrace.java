@@ -59,6 +59,24 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     private static final int CONFIDENCE = 100;
 
+    public BigInteger getCallInfo(long rank) {
+        BigInteger result = null;
+        BigInteger [] arr = (BigInteger[])f_instProfData.get("is_call");
+        if (arr != null) {
+            result = arr[(int)rank];
+        }
+        return result;
+    }
+
+    public BigInteger getReturnInfo(long rank) {
+        BigInteger result = null;
+        BigInteger [] arr = (BigInteger[])f_instProfData.get("is_return");
+        if (arr != null) {
+            result = arr[(int)rank];
+        }
+        return result;
+    }
+
     static private boolean isShinroProfilingHdf5File(String strPath) {
         // a file is deemed to be a Shinro profiling HDF5 file if it can be opened
         // successfully with the HDF5 library, and if it has a group /inst_prof_data.
@@ -212,13 +230,24 @@ public class ShinroProfilingTrace extends TmfTrace {
                 BigInteger addr = addresses[idx+1];
                 isCallArray[idx] = addr;
                 stack.push(addr);
+                BigInteger [] arr = (BigInteger[])map.get("is_call");
+                if (arr != null) {
+                    //System.out.println(String.format("Rank %d is a call to addr 0x%x", idx, addr.longValue()));
+                    arr[idx] = addr;
+                }
             }
             if (isReturn) {
                 if (stack.empty()) {
-                    System.out.println("Warning: saw return without preceding call");
+                    // System.out.println("Warning: saw return without preceding call");
                 } else {
                     BigInteger top = stack.pop();
                     isReturnArray[idx] = top;
+                    BigInteger [] arr = (BigInteger[])map.get("is_return");
+                    if (arr != null) {
+                        arr[idx] = top;
+                        // System.out.println(String.format("Rank %d is a return from function at addr 0x%x", idx, top.longValue()));
+                    }
+
                 }
             }
         }
@@ -288,11 +317,11 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     @Override
     public ITmfEvent parseEvent(ITmfContext context) {
+        // This shouldn't happen, but we'd like to know if it does happen
         if (context.getRank() != f_rank) {
-            System.out.println("Unexpected; figure out an explanation.");
+            throw new RuntimeException("Internal error in ShinroProfilingTrace.parseEvent()");
         }
 
-        // TODO: return null if f_rank is beyond bounds of what is still unconsumed
         if (f_rank >= f_instProfDataNumElements) {
             return null;
         }
@@ -345,7 +374,7 @@ public class ShinroProfilingTrace extends TmfTrace {
                     double [] ary = (double[])field;
                     fieldVal = ary[(int)f_rank];
                 } else {
-                    System.out.println("Shinro Profiling Trace internal error: unexpected data type returned from jhdf query.");
+                    throw new RuntimeException("Shinro Profiling Trace internal error: unexpected data type returned from jhdf query.");
                 }
                 if (fieldVal != null) {
                     TmfEventField child = new ShinroProfilingEventField(fieldname, fieldVal, shouldFieldBeDisplayedInHex(fieldname), null);
