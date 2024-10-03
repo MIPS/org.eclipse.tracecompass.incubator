@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -133,6 +134,21 @@ public class ShinroProfilingTrace extends TmfTrace {
                 fieldname.equals("opcode");
     }
 
+
+    static final String CORE_INDEX_SENTINEL_SUBSTRING = "_core";
+
+    private static int getCoreIndexFromDatasetName(String datasetName) {
+        // dataset name is something like "dhry_mips_core0", so the heuristic is to
+        // look for a trailing "_core" substring and then scrape the index from the remaining characters
+        int coreIndex = 0;
+        int pos = datasetName.lastIndexOf(CORE_INDEX_SENTINEL_SUBSTRING);
+        if (pos != -1) {
+            String strIndex = datasetName.substring(pos+CORE_INDEX_SENTINEL_SUBSTRING.length());
+            coreIndex = Integer.valueOf(strIndex);
+        }
+        return coreIndex;
+    }
+
     private void loadInstProfData(HdfFile file) {
         Node nodeProfData = file.getByPath("/inst_prof_data");
 
@@ -150,6 +166,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                 }
             }
             if (firstDataset != null) {
+                String datasetName = firstDataset.getName();
+                int coreIdx = getCoreIndexFromDatasetName(datasetName);
                 f_instProfDataNumElements = firstDataset.getDimensions()[0];
                 DataType dt = firstDataset.getDataType();
                 CompoundDataType cdt = (CompoundDataType)dt;
@@ -162,6 +180,7 @@ public class ShinroProfilingTrace extends TmfTrace {
                 if (obj instanceof Map<?, ?>) {
                     f_instProfData = (Map<String, Object>)firstDataset.getData();
                     // compute call/return pseudo attributes
+                    assignCoreIndexField(f_instProfData, (int)f_instProfDataNumElements, coreIdx);
                     computeCallReturnPseudoAttributes(f_instProfData, (int)f_instProfDataNumElements);
                 }
 
@@ -172,6 +191,12 @@ public class ShinroProfilingTrace extends TmfTrace {
             // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
             // to be adjusted to be per-core.
         }
+    }
+
+    static private void assignCoreIndexField(Map<String, Object> map, int numElements, int coreIndex) {
+        int [] core = new int [numElements];
+        Arrays.fill(core, coreIndex);
+        map.put("core", core);
     }
 
     static final int MATCH_JAL = 0x6f;
@@ -357,9 +382,21 @@ public class ShinroProfilingTrace extends TmfTrace {
      * @param rank
      */
     public ITmfEventField getFieldContent(long rank) {
+        ArrayList<ITmfEventField> children = new ArrayList<>();
+
+        // a "core" field isn't part of the inst_prof_data record in the HDF5 file, but
+        //  we figured it out when loading from HDF5 anyway.  Here we are handling that field specially
+        int [] coreIndexArray = (int[])f_instProfData.get("core");
+        int coreIndex = 0;
+        if (coreIndexArray != null) {
+            coreIndex = coreIndexArray[(int)rank];
+        }
+        TmfEventField child = new ShinroProfilingEventField("core", coreIndex, shouldFieldBeDisplayedInHex("core"), null);
+        children.add(child);
+
         // for each field in data map, create a TmfEventField instance with the name of the data
         // map field and the [f_rank] offset of the array of data values for that field
-        ArrayList<ITmfEventField> children = new ArrayList<>();
+
         f_instProfMetadata.forEach((fieldname, metadata) -> {
             Object field = f_instProfData.get(fieldname);
             if (field != null) {
@@ -380,8 +417,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                     throw new RuntimeException("Shinro Profiling Trace internal error: unexpected data type returned from jhdf query.");
                 }
                 if (fieldVal != null) {
-                    TmfEventField child = new ShinroProfilingEventField(fieldname, fieldVal, shouldFieldBeDisplayedInHex(fieldname), null);
-                    children.add(child);
+                    TmfEventField f = new ShinroProfilingEventField(fieldname, fieldVal, shouldFieldBeDisplayedInHex(fieldname), null);
+                    children.add(f);
                 }
                 // There's one pseudo field that's not in /inst_prof_data but we have to look it up
                 // at runtime from info gleaned from /inst_disasm_data: disassembly text.
@@ -391,8 +428,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                     String dasmString = f_opcodeDasmMap.get(fieldVal);
                     if (dasmString != null) {
                         QuotedString quotedString = new QuotedString(dasmString);
-                        TmfEventField child = new ShinroProfilingEventField("disasm", quotedString, false, null);
-                        children.add(child);
+                        TmfEventField f = new ShinroProfilingEventField("disasm", quotedString, false, null);
+                        children.add(f);
                     }
                 }
             }
