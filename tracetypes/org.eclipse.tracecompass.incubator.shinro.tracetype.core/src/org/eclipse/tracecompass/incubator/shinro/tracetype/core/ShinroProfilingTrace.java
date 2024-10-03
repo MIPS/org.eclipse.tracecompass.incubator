@@ -47,6 +47,10 @@ public class ShinroProfilingTrace extends TmfTrace {
     Map<String, DatasetMetadata> f_instProfMetadata = new HashMap<>();
     ITmfEventType shinroProfilingEventType;
 
+    private final String TIMESTAMP_FIELD_NAME = "cycle_first_seen";
+    // TODO: update above line to "cycle_first_retired" when that
+    // corresponding change gets merged to master branch of shinro
+
     class DatasetMetadata {
         DatasetMetadata(CompoundDataMember member) {
             this.member = member;
@@ -329,11 +333,10 @@ public class ShinroProfilingTrace extends TmfTrace {
 
         ITmfEventField content = getFieldContent(f_rank);
 
-        // let's use the cycle_first_seen field as the timestamp, since there's no better option from what's available
-        ITmfEventField fieldCycleFirstSeen = content.getField("cycle_first_seen");
+        ITmfEventField fieldTimestamp = content.getField(TIMESTAMP_FIELD_NAME);
         ITmfTimestamp eventTimestamp = null;
-        if (fieldCycleFirstSeen != null) {
-            BigInteger bigintVal = (BigInteger)fieldCycleFirstSeen.getValue();
+        if (fieldTimestamp != null) {
+            BigInteger bigintVal = (BigInteger)fieldTimestamp.getValue();
             long longval = bigintVal.longValue();
             eventTimestamp = new TmfNanoTimestamp(longval);
         }
