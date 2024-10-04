@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -14,12 +15,17 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator;
 import org.eclipse.tracecompass.internal.tmf.core.timestamp.TmfNanoTimestamp;
+import org.eclipse.tracecompass.lttng2.ust.core.analysis.debuginfo.UstDebugInfoBinaryAspect;
+import org.eclipse.tracecompass.lttng2.ust.core.analysis.debuginfo.UstDebugInfoFunctionAspect;
+import org.eclipse.tracecompass.lttng2.ust.core.analysis.debuginfo.UstDebugInfoSourceAspect;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
 import org.eclipse.tracecompass.tmf.core.event.TmfEventField;
+import org.eclipse.tracecompass.tmf.core.event.aspect.ITmfEventAspect;
 import org.eclipse.tracecompass.tmf.core.exceptions.TmfTraceException;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfContext;
@@ -28,6 +34,8 @@ import org.eclipse.tracecompass.tmf.core.trace.TmfTrace;
 import org.eclipse.tracecompass.tmf.core.trace.TraceValidationStatus;
 import org.eclipse.tracecompass.tmf.core.trace.location.ITmfLocation;
 import org.eclipse.tracecompass.tmf.core.trace.location.TmfLongLocation;
+
+import com.google.common.collect.ImmutableSet;
 
 import io.jhdf.HdfFile;
 import io.jhdf.api.Dataset;
@@ -51,6 +59,23 @@ public class ShinroProfilingTrace extends TmfTrace {
     private final String TIMESTAMP_FIELD_NAME = "cycle_first_seen";
     // TODO: update above line to "cycle_first_retired" when that
     // corresponding change gets merged to master branch of shinro
+
+    private static final @NonNull Collection<ITmfEventAspect<?>> SHINRO_ASPECTS;
+    /** Default collections of aspects */
+    private @NonNull Collection<ITmfEventAspect<?>> fShinroTraceAspects = ImmutableSet.copyOf(SHINRO_ASPECTS);
+
+
+    static {
+        ImmutableSet.Builder<ITmfEventAspect<?>> builder = ImmutableSet.builder();
+        builder.addAll(TmfTrace.BASE_ASPECTS);
+        // It's not clear yet whether the following 3 aspects will work for us.  We might need to
+        // create distinct but analogous classes
+        builder.add(UstDebugInfoBinaryAspect.INSTANCE);
+        builder.add(UstDebugInfoFunctionAspect.INSTANCE);
+        builder.add(UstDebugInfoSourceAspect.INSTANCE);
+
+        SHINRO_ASPECTS = builder.build();
+    }
 
     class DatasetMetadata {
         DatasetMetadata(CompoundDataMember member) {
@@ -108,6 +133,9 @@ public class ShinroProfilingTrace extends TmfTrace {
 
         }
         super.initTrace(resource, strPath, type, name, traceTypeId);
+        ImmutableSet.Builder<ITmfEventAspect<?>> builder = ImmutableSet.builder();
+        builder.addAll(SHINRO_ASPECTS);
+        fShinroTraceAspects = builder.build();
     }
 
     private void loadInstDisasmData(HdfFile file) {
@@ -451,6 +479,12 @@ public class ShinroProfilingTrace extends TmfTrace {
         }
         return 0L;
     }
+
+    @Override
+    public Iterable<ITmfEventAspect<?>> getEventAspects() {
+        return fShinroTraceAspects;
+    }
+
 
 
 }
