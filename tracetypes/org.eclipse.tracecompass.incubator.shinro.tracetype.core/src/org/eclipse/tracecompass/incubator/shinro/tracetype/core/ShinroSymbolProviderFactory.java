@@ -13,9 +13,10 @@ public class ShinroSymbolProviderFactory implements ISymbolProviderFactory {
 
     @Override
     public @Nullable ISymbolProvider createProvider(@NonNull ITmfTrace trace) {
-        if (trace instanceof ShinroTrace) {
-            return new ShinroSymbolProvider((ShinroTrace) trace);
+        if (trace instanceof ShinroProfilingTrace) {
+            return new ShinroSymbolProvider((ShinroProfilingTrace) trace);
         }
+
         return null;
     }
 }

@@ -64,4 +64,14 @@ public class ShinroProfilingEvent extends TmfEvent {
         // TODO Auto-generated method stub
         return super.clone();
     }
+
+    /*
+    @Override
+    public @Nullable ITmfCallsite getCallsite() {
+        // temporary scaffolding
+        ITmfCallsite cs = new TmfCallsite("/home/gsavin/1.c", 2L);
+        return cs;
+    }
+    */
+
 }

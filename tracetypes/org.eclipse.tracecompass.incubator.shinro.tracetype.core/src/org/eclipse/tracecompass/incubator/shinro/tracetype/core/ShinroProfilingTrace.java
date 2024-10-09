@@ -18,9 +18,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator;
 import org.eclipse.tracecompass.internal.tmf.core.timestamp.TmfNanoTimestamp;
-import org.eclipse.tracecompass.lttng2.ust.core.analysis.debuginfo.UstDebugInfoBinaryAspect;
-import org.eclipse.tracecompass.lttng2.ust.core.analysis.debuginfo.UstDebugInfoFunctionAspect;
-import org.eclipse.tracecompass.lttng2.ust.core.analysis.debuginfo.UstDebugInfoSourceAspect;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
@@ -68,11 +65,15 @@ public class ShinroProfilingTrace extends TmfTrace {
     static {
         ImmutableSet.Builder<ITmfEventAspect<?>> builder = ImmutableSet.builder();
         builder.addAll(TmfTrace.BASE_ASPECTS);
-        // It's not clear yet whether the following 3 aspects will work for us.  We might need to
-        // create distinct but analogous classes
-        builder.add(UstDebugInfoBinaryAspect.INSTANCE);
-        builder.add(UstDebugInfoFunctionAspect.INSTANCE);
-        builder.add(UstDebugInfoSourceAspect.INSTANCE);
+
+        // these were attempts to get source linkage to work from events table,
+        // but that looks like it doesn't work in the VSCode/Theia based trace UIs,
+        // in which case there may be no point.
+        //builder.add(ShinroProfilingSourceAspect.INSTANCE);
+        //builder.add(UstDebugInfoBinaryAspect.INSTANCE);
+        //builder.add(UstDebugInfoFunctionAspect.INSTANCE);
+
+
 
         SHINRO_ASPECTS = builder.build();
     }
