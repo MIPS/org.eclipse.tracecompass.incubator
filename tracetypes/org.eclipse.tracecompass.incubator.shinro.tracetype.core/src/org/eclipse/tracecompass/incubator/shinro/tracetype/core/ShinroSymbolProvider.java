@@ -41,7 +41,9 @@ public class ShinroSymbolProvider implements ISymbolProvider {
         Path pathElf = lookForElf(pathTrace);
         if (pathElf != null) {
             IMappingFile elfFile = IMappingFile.create(pathElf.toString(), true);
-            fMappingFiles.add(elfFile);
+            if (elfFile != null) {
+                fMappingFiles.add(elfFile);
+            }
         }
     }
 
