@@ -1,10 +1,13 @@
 package org.eclipse.tracecompass.incubator.shinro.tracetype.core;
 
+import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.jdt.annotation.Nullable;
@@ -28,14 +31,35 @@ public class ShinroSymbolProvider implements ISymbolProvider {
      *
      * @param trace
      */
+    @SuppressWarnings("null")
     public ShinroSymbolProvider(ShinroProfilingTrace trace) {
         fTrace = trace;
-        // TODO: initialize fMappingFiles to refer to an ELF file that is in a known place
+        // initialize fMappingFiles to refer to an ELF file that is in a known place
         //  relative to the trace
-        IResource resourceTrace = fTrace.getResource();
-        String pathTrace = fTrace.getPath();
-        System.out.println(resourceTrace);
-        System.out.println(pathTrace);
+        String strPathTrace = fTrace.getPath();
+        Path pathTrace = Path.of(strPathTrace);
+        Path pathElf = lookForElf(pathTrace);
+        if (pathElf != null) {
+            IMappingFile elfFile = IMappingFile.create(pathElf.toString(), true);
+            fMappingFiles.add(elfFile);
+        }
+    }
+
+    static private Path lookForElf(Path pathTrace) {
+        // in the same directory as pathTrace, find the first file with file extension .elf
+        Path parentPath = pathTrace.getParent();
+        try {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(parentPath)) {
+                for (Path entry: stream) {
+                    if (entry.toString().endsWith(".elf")) {
+                        return entry;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
