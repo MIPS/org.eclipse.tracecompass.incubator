@@ -1,8 +1,5 @@
 package org.eclipse.tracecompass.incubator.shinro.tracetype.core;
 
-import java.io.IOException;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,19 +44,22 @@ public class ShinroSymbolProvider implements ISymbolProvider {
         }
     }
 
+    static private String withoutFileExtension(String filename) {
+        String result = filename;
+        int pos = result.lastIndexOf('.');
+        if (pos != -1) {
+            result = result.substring(0, pos);
+        }
+        return result;
+    }
+
     static private Path lookForElf(Path pathTrace) {
-        // in the same directory as pathTrace, find the first file with file extension .elf
-        Path parentPath = pathTrace.getParent();
-        try {
-            try (DirectoryStream<Path> stream = Files.newDirectoryStream(parentPath)) {
-                for (Path entry: stream) {
-                    if (entry.toString().endsWith(".elf")) {
-                        return entry;
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        // in the same directory as pathTrace, look for a file with the same name but with the .elf extension
+        String strFileNameTrace = pathTrace.getFileName().toString();
+        String strFileNameElf = withoutFileExtension(strFileNameTrace) + ".elf";
+        Path pathElf = pathTrace.resolveSibling(strFileNameElf);
+        if (pathElf.toFile().exists()) {
+            return pathElf;
         }
         return null;
     }
