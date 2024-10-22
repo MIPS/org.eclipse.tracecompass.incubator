@@ -1,13 +1,17 @@
 package org.eclipse.tracecompass.incubator.shinro.tracetype.core;
 
 import org.eclipse.jdt.annotation.NonNull;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventType;
 import org.eclipse.tracecompass.tmf.core.event.TmfEvent;
+import org.eclipse.tracecompass.tmf.core.event.lookup.ITmfCallsite;
+import org.eclipse.tracecompass.tmf.core.event.lookup.ITmfSourceLookup;
+import org.eclipse.tracecompass.tmf.core.event.lookup.TmfCallsite;
 import org.eclipse.tracecompass.tmf.core.timestamp.ITmfTimestamp;
 import org.eclipse.tracecompass.tmf.core.trace.ITmfTrace;
 
-public class ShinroProfilingEvent extends TmfEvent {
+public class ShinroProfilingEvent extends TmfEvent implements ITmfSourceLookup {
 
     public ShinroProfilingEvent() {
         // TODO - it might necessary to assign fType field here.  I observed Trace Compass
@@ -65,13 +69,11 @@ public class ShinroProfilingEvent extends TmfEvent {
         return super.clone();
     }
 
-    /*
     @Override
     public @Nullable ITmfCallsite getCallsite() {
         // temporary scaffolding
         ITmfCallsite cs = new TmfCallsite("/home/gsavin/1.c", 2L);
         return cs;
     }
-    */
 
 }

@@ -1,5 +1,6 @@
 package org.eclipse.tracecompass.incubator.shinro.tracetype.core;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,12 +12,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
+import org.eclipse.cdt.utils.Addr2line;
+import org.eclipse.cdt.utils.Addr64;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jdt.annotation.NonNull;
 import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.Activator;
+import org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.aspects.ShinroProfilingSourceAspect;
 import org.eclipse.tracecompass.internal.tmf.core.timestamp.TmfNanoTimestamp;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEvent;
 import org.eclipse.tracecompass.tmf.core.event.ITmfEventField;
@@ -61,6 +65,8 @@ public class ShinroProfilingTrace extends TmfTrace {
     /** Default collections of aspects */
     private @NonNull Collection<ITmfEventAspect<?>> fShinroTraceAspects = ImmutableSet.copyOf(SHINRO_ASPECTS);
 
+    private Addr2line addr2line;
+    private static final String ADDR2LINE_EXECUTABLE = "riscv64-mti-elf-addr2line";
 
     static {
         ImmutableSet.Builder<ITmfEventAspect<?>> builder = ImmutableSet.builder();
@@ -69,7 +75,8 @@ public class ShinroProfilingTrace extends TmfTrace {
         // these were attempts to get source linkage to work from events table,
         // but that looks like it doesn't work in the VSCode/Theia based trace UIs,
         // in which case there may be no point.
-        //builder.add(ShinroProfilingSourceAspect.INSTANCE);
+        builder.add(ShinroProfilingSourceAspect.INSTANCE);
+        //builder.add(UstDebugInfoSourceAspect.INSTANCE);
         //builder.add(UstDebugInfoBinaryAspect.INSTANCE);
         //builder.add(UstDebugInfoFunctionAspect.INSTANCE);
 
@@ -137,6 +144,16 @@ public class ShinroProfilingTrace extends TmfTrace {
         ImmutableSet.Builder<ITmfEventAspect<?>> builder = ImmutableSet.builder();
         builder.addAll(SHINRO_ASPECTS);
         fShinroTraceAspects = builder.build();
+        Path elfPath = ShinroSymbolProvider.lookForElf(path);
+        if (elfPath != null) {
+            String [] params = {"-C", "-f", "-e", elfPath.toString()};
+            try {
+                addr2line = new Addr2line(ADDR2LINE_EXECUTABLE, params, elfPath.toString(), null);
+            } catch (IOException e) {
+                // addr2line will stay null
+                e.printStackTrace();
+            }
+        }
     }
 
     private void loadInstDisasmData(HdfFile file) {
@@ -314,6 +331,9 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     @Override
     public synchronized void dispose() {
+        if (addr2line != null) {
+            addr2line.dispose();
+        }
         super.dispose();
     }
 
@@ -449,9 +469,6 @@ public class ShinroProfilingTrace extends TmfTrace {
                     TmfEventField f = new ShinroProfilingEventField(fieldname, fieldVal, shouldFieldBeDisplayedInHex(fieldname), null);
                     children.add(f);
                 }
-                // There's one pseudo field that's not in /inst_prof_data but we have to look it up
-                // at runtime from info gleaned from /inst_disasm_data: disassembly text.
-                // So this case is treated specially:
                 if (fieldname.equals("opcode")) {
                     // lookup in opcode map to get dasm text
                     String dasmString = f_opcodeDasmMap.get(fieldVal);
@@ -459,6 +476,23 @@ public class ShinroProfilingTrace extends TmfTrace {
                         QuotedString quotedString = new QuotedString(dasmString);
                         TmfEventField f = new ShinroProfilingEventField("disasm", quotedString, false, null);
                         children.add(f);
+                    }
+                } else if (fieldname.equals("inst_addr")) {
+                    // try to get a file:line pair for this address
+                    if (addr2line != null) {
+                        BigInteger big = (BigInteger)fieldVal;
+                        Addr64 addr = new Addr64(big);
+                        try {
+                            String strFileName = addr2line.getFileName(addr);
+                            int lineNumber = addr2line.getLineNumber(addr);
+                            if (lineNumber != -1) {
+                                // TODO: store file/line in an appropriate place within the event structure
+                                System.out.println(strFileName);  // just to quiet unused variable warning
+                            }
+                        } catch (IOException e) {
+                            // not much we can do
+                            e.printStackTrace();
+                        }
                     }
                 }
             }

@@ -53,7 +53,7 @@ public class ShinroSymbolProvider implements ISymbolProvider {
         return result;
     }
 
-    static private Path lookForElf(Path pathTrace) {
+    static Path lookForElf(Path pathTrace) {
         // in the same directory as pathTrace, look for a file with the same name but with the .elf extension
         String strFileNameTrace = pathTrace.getFileName().toString();
         String strFileNameElf = withoutFileExtension(strFileNameTrace) + ".elf";

@@ -33,7 +33,9 @@ public class ShinroProfilingSourceAspect implements ITmfEventAspect<TmfCallsite>
         if (!(event.getTrace() instanceof ShinroProfilingTrace)) {
             return null;
         }
-        return null;
+        // temporary scaffolding
+        TmfCallsite cs = new TmfCallsite("/home/gsavin/1.c", 2L);
+        return cs;
     }
 
 }

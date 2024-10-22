@@ -24,7 +24,8 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.tracecompass.analysis.timing.core,
  org.eclipse.tracecompass.segmentstore.core,
  org.eclipse.jdt.annotation;bundle-version="[2.0.0,3.0.0)";resolution:=optional,
- org.eclipse.tracecompass.lttng2.ust.core
+ org.eclipse.tracecompass.lttng2.ust.core,
+ org.eclipse.cdt.core;bundle-version="8.4.200"
 Export-Package: org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core;x-friends:="org.eclipse.tracecompass.incubator.shinro.tracetype.core.tests",
  org.eclipse.tracecompass.incubator.internal.shinro.tracetype.core.callstack;
   uses:="org.eclipse.tracecompass.analysis.profiling.core.callstack,
