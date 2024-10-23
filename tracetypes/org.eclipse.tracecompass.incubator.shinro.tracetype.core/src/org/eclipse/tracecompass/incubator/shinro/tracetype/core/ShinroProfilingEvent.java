@@ -72,18 +72,14 @@ public class ShinroProfilingEvent extends TmfEvent implements ITmfSourceLookup {
     @Override
     public @Nullable ITmfCallsite getCallsite() {
         ITmfEventField rootField = getContent();
-        ITmfEventField sourceField = rootField.getField("source");
-        if (sourceField != null) {
-            String strFileLine = (String)sourceField.getValue();
-            String strFile;
-            int lineNumber = -1;
-            int colonPos = strFileLine.lastIndexOf(':');
-            if (colonPos != -1) {
-                strFile = strFileLine.substring(0, colonPos);
-                lineNumber = Integer.parseInt(strFileLine.substring(colonPos+1));
-                TmfCallsite cs = new TmfCallsite(strFile, (long)lineNumber);
-                return cs;
-            }
+        ITmfEventField srcFileField = rootField.getField("srcfile");
+        ITmfEventField srcLineField = rootField.getField("srcline");
+        int lineNumber = -1;
+        if (srcFileField != null && srcLineField != null) {
+            String strFile = (String)srcFileField.getValue();
+            lineNumber = (Integer)srcLineField.getValue();
+            TmfCallsite cs = new TmfCallsite(strFile, (long)lineNumber);
+            return cs;
         }
         return null;
     }
