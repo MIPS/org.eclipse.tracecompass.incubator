@@ -360,6 +360,11 @@ public class ShinroProfilingTrace extends TmfTrace {
     public ITmfContext seekEvent(ITmfLocation location) {
         if (location == null) {
             f_rank = 0;
+        } else {
+            Object info = location.getLocationInfo();
+            if (info instanceof Long) {
+                f_rank = (Long)info;
+            }
         }
         TmfContext context = new TmfContext(location, f_rank);
         return context;
@@ -367,9 +372,9 @@ public class ShinroProfilingTrace extends TmfTrace {
 
     @Override
     public ITmfContext seekEvent(double ratio) {
-        // TODO Auto-generated method stub
-        return null;
-
+        long seekRank = (long)(f_instProfDataNumElements * ratio);
+        ITmfLocation location = new TmfLongLocation(seekRank);
+        return seekEvent(location);
     }
 
 
