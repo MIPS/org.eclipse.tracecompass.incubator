@@ -486,9 +486,15 @@ public class ShinroProfilingTrace extends TmfTrace {
                             String strFileName = addr2line.getFileName(addr);
                             int lineNumber = addr2line.getLineNumber(addr);
                             if (lineNumber != -1) {
-                                // TODO: store file/line in an appropriate place within the event structure
-                                System.out.println(strFileName);  // just to quiet unused variable warning
-                            }
+                                String strFileLine = strFileName + ":" + lineNumber;
+                                TmfEventField f = new ShinroProfilingEventField("source", strFileLine, false, null);
+                                children.add(f);
+                            } /* else {
+                                // scaffolding...
+                                String strFileLine = "gregtest.c:123";
+                                TmfEventField f = new ShinroProfilingEventField("source", strFileLine, false, null);
+                                children.add(f);
+                            } */
                         } catch (IOException e) {
                             // not much we can do
                             e.printStackTrace();
