@@ -55,8 +55,9 @@ public class ShinroSymbolProvider implements ISymbolProvider {
 
     static Path lookForElf(Path pathTrace) {
         // in the same directory as pathTrace, look for a file with the same name but with the .elf extension
+        // (appended on to the extension of the trace file... trace file extension vestige remains!)
         String strFileNameTrace = pathTrace.getFileName().toString();
-        String strFileNameElf = withoutFileExtension(strFileNameTrace) + ".elf";
+        String strFileNameElf = withoutFileExtension(strFileNameTrace);
         Path pathElf = pathTrace.resolveSibling(strFileNameElf);
         if (pathElf.toFile().exists()) {
             return pathElf;

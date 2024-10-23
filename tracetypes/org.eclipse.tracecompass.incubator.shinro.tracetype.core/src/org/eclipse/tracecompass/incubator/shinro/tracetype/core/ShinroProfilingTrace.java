@@ -55,6 +55,7 @@ public class ShinroProfilingTrace extends TmfTrace {
     long f_instProfDataNumElements;
     long f_rank;
     Map<String, DatasetMetadata> f_instProfMetadata = new HashMap<>();
+    Path f_elfPath;
     ITmfEventType shinroProfilingEventType;
 
     private final String TIMESTAMP_FIELD_NAME = "cycle_first_seen";
@@ -144,14 +145,13 @@ public class ShinroProfilingTrace extends TmfTrace {
         ImmutableSet.Builder<ITmfEventAspect<?>> builder = ImmutableSet.builder();
         builder.addAll(SHINRO_ASPECTS);
         fShinroTraceAspects = builder.build();
-        Path elfPath = ShinroSymbolProvider.lookForElf(path);
-        if (elfPath != null) {
-            String [] params = {"-C", "-f", "-e", elfPath.toString()};
+        f_elfPath = ShinroSymbolProvider.lookForElf(path);
+        if (f_elfPath != null) {
+            String [] params = {"-C", "-f", "-e", f_elfPath.toString()};
             try {
-                addr2line = new Addr2line(ADDR2LINE_EXECUTABLE, params, elfPath.toString(), null);
+                addr2line = new Addr2line(ADDR2LINE_EXECUTABLE, params, f_elfPath.toString(), null);
             } catch (IOException e) {
                 // addr2line will stay null
-                e.printStackTrace();
             }
         }
     }
@@ -485,7 +485,9 @@ public class ShinroProfilingTrace extends TmfTrace {
                         try {
                             String strFileName = addr2line.getFileName(addr);
                             if (!strFileName.startsWith("?")) {
-                                TmfEventField f = new ShinroProfilingEventField("srcfile", strFileName, false, null);
+                                Path pathFile = Paths.get(strFileName);
+                                Path remappedPath = getSourcePathRemapping(pathFile);
+                                TmfEventField f = new ShinroProfilingEventField("srcfile", remappedPath.toString(), false, null);
                                 children.add(f);
                             }
                             int lineNumber = addr2line.getLineNumber(addr);
@@ -501,7 +503,6 @@ public class ShinroProfilingTrace extends TmfTrace {
                             } */
                         } catch (IOException e) {
                             // not much we can do
-                            e.printStackTrace();
                         }
                     }
                 }
@@ -510,6 +511,21 @@ public class ShinroProfilingTrace extends TmfTrace {
 
         TmfEventField rootField = new ShinroProfilingEventField(ITmfEventField.ROOT_FIELD_ID, null, false, children.toArray(new ITmfEventField[0]));
         return rootField;
+    }
+
+    private Path getSourcePathRemapping(Path originalPath) {
+        Path mappedPath = originalPath;
+        if (f_elfPath != null) {
+            Path originalPathRootless = originalPath;
+            if (originalPath.getRoot() != null) {
+                originalPathRootless = originalPath.getRoot().relativize(originalPath);
+            }
+            mappedPath = f_elfPath.getParent().getParent().resolve("src").resolve(originalPathRootless);
+            if (mappedPath.toFile().exists()) {
+                return mappedPath;
+            }
+        }
+        return mappedPath;
     }
 
     /**
