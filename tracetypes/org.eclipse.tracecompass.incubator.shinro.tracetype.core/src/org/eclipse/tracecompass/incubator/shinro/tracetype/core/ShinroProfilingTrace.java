@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,6 +52,7 @@ import io.jhdf.object.datatype.DataType;
 public class ShinroProfilingTrace extends TmfTrace {
 
     Map<String, Object> f_instProfData = null;
+    Integer [] f_instProfDataIndex;
     Map<Long, String> f_opcodeDasmMap = new HashMap<Long, String>();
     long f_instProfDataNumElements;
     long f_rank;
@@ -102,7 +104,8 @@ public class ShinroProfilingTrace extends TmfTrace {
         BigInteger result = null;
         BigInteger [] arr = (BigInteger[])f_instProfData.get("is_call");
         if (arr != null) {
-            result = arr[(int)rank];
+            int idx = rankToArrayIdx(rank);
+            result = arr[idx];
         }
         return result;
     }
@@ -111,7 +114,8 @@ public class ShinroProfilingTrace extends TmfTrace {
         BigInteger result = null;
         BigInteger [] arr = (BigInteger[])f_instProfData.get("is_return");
         if (arr != null) {
-            result = arr[(int)rank];
+            int idx = rankToArrayIdx(rank);
+            result = arr[idx];
         }
         return result;
     }
@@ -227,6 +231,8 @@ public class ShinroProfilingTrace extends TmfTrace {
                     f_instProfData = (Map<String, Object>)firstDataset.getData();
                     // compute call/return pseudo attributes
                     assignCoreIndexField(f_instProfData, (int)f_instProfDataNumElements, coreIdx);
+                    // TODO: build array of indexes in ascending order of cycle
+                    buildSortedOrderIndex((BigInteger[])f_instProfData.get("cycle_first_seen"));
                     computeCallReturnPseudoAttributes(f_instProfData, (int)f_instProfDataNumElements);
                 }
 
@@ -237,6 +243,40 @@ public class ShinroProfilingTrace extends TmfTrace {
             // dataset per core for multi-core.  So this metehod, and class member data structures will probably need
             // to be adjusted to be per-core.
         }
+    }
+
+
+    class CycleFieldComparator implements Comparator<Integer> {
+
+        BigInteger [] cycleArray;
+
+        public CycleFieldComparator(BigInteger [] cycleArray) {
+            this.cycleArray = cycleArray;
+        }
+
+        @Override
+        public int compare(Integer o1, Integer o2) {
+            return cycleArray[o1].compareTo(cycleArray[o2]);
+        }
+
+    }
+
+    // Rank is an index into index table, table holds index to use for the array
+    // read in from HDF5
+    private int rankToArrayIdx(long rank) {
+       return f_instProfDataIndex[(int)rank];
+    }
+
+    // build an array that can be used to access the inst_prof_data elements in ascending order of their cycle field
+    private void buildSortedOrderIndex(BigInteger [] cycleArray) {
+        f_instProfDataIndex = new Integer [(int)f_instProfDataNumElements];
+        // Create base 0..N-1 values, then we'll sort them according to increasing cycle value
+        for (int i = 0; i < f_instProfDataNumElements; i++) {
+            f_instProfDataIndex[i] = i;
+        }
+        // Now sort them
+        CycleFieldComparator comp = new CycleFieldComparator(cycleArray);
+        Arrays.sort(f_instProfDataIndex, comp);
     }
 
     static private void assignCoreIndexField(Map<String, Object> map, int numElements, int coreIndex) {
@@ -409,8 +449,8 @@ public class ShinroProfilingTrace extends TmfTrace {
             return null;
         }
 
-
-        ITmfEventField content = getFieldContent(f_rank);
+        int idx = rankToArrayIdx(f_rank);
+        ITmfEventField content = getFieldContent(idx);
 
         ITmfEventField fieldTimestamp = content.getField(TIMESTAMP_FIELD_NAME);
         ITmfTimestamp eventTimestamp = null;
@@ -435,7 +475,7 @@ public class ShinroProfilingTrace extends TmfTrace {
     /**
      * @param rank
      */
-    public ITmfEventField getFieldContent(long rank) {
+    public ITmfEventField getFieldContent(int idx) {
         ArrayList<ITmfEventField> children = new ArrayList<>();
 
         // a "core" field isn't part of the inst_prof_data record in the HDF5 file, but
@@ -443,7 +483,7 @@ public class ShinroProfilingTrace extends TmfTrace {
         int [] coreIndexArray = (int[])f_instProfData.get("core");
         int coreIndex = 0;
         if (coreIndexArray != null) {
-            coreIndex = coreIndexArray[(int)rank];
+            coreIndex = coreIndexArray[idx];
         }
         TmfEventField child = new ShinroProfilingEventField("core", coreIndex, shouldFieldBeDisplayedInHex("core"), null);
         children.add(child);
@@ -457,16 +497,16 @@ public class ShinroProfilingTrace extends TmfTrace {
                 Object fieldVal = null;
                 if (metadata.cls == BigInteger.class) {
                     BigInteger [] ary = (BigInteger[])field;
-                    fieldVal = ary[(int)f_rank];
+                    fieldVal = ary[idx];
                 } else if (metadata.cls == long.class) {
                     long [] ary = (long[])field;
-                    fieldVal = ary[(int)f_rank];
+                    fieldVal = ary[idx];
                 } else if (metadata.cls == int.class) {
                     int [] ary = (int[])field;
-                    fieldVal = ary[(int)f_rank];
+                    fieldVal = ary[idx];
                 } else if (metadata.cls == double.class) {
                     double [] ary = (double[])field;
-                    fieldVal = ary[(int)f_rank];
+                    fieldVal = ary[idx];
                 } else {
                     throw new RuntimeException("Shinro Profiling Trace internal error: unexpected data type returned from jhdf query.");
                 }
